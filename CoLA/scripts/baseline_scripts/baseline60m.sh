@@ -1,5 +1,6 @@
 torchrun --standalone --nproc_per_node 1 main.py \
     --model_config baseline_configs/llama_60m.json \
+    --model_type llama \
     --lr 0.001 \
     --batch_size 128 \
     --total_batch_size 512 \
