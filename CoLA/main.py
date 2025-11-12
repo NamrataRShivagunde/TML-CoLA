@@ -237,7 +237,7 @@ def main(args):
         model_name = args.model_config.split("/")[1]
         model_name = model_name.split(".")[0]
         run_name = (
-            f"{model_name}-{args.peft_model}"
+            f"{model_name}"
             if args.run_name is None
             else args.run_name
         )
