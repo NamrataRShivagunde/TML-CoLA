@@ -11,4 +11,6 @@ torchrun --standalone --nproc_per_node 1 main.py \
     --eval_every 1000 \
     --optimizer adamw \
     --run_name baseline-60m-cosine \
-    --scheduler cosine
+    --scheduler cosine \
+    --save_every 20 \
+    --eval_every 20

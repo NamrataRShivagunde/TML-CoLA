@@ -485,6 +485,10 @@ def main(args):
             broadcast_buffers=False,
         )
 
+    # Helper function to get the underlying model (unwrapped from DDP if needed)
+    def get_model_for_saving():
+        return model.module if hasattr(model, 'module') else model
+
     # global steps and others are defined above
     pad_idx = tokenizer.pad_token_id
     update_time = time.time()
@@ -562,7 +566,7 @@ def main(args):
                 f"Saving model and optimizer to {current_model_directory}, update step {update_step}"
             )
             os.makedirs(args.save_dir, exist_ok=True)
-            model.module.save_pretrained(
+            get_model_for_saving().save_pretrained(
                 current_model_directory, max_shard_size="100GB"
             )
 
@@ -665,7 +669,7 @@ def main(args):
         )
         os.makedirs(args.save_dir, exist_ok=True)
 
-        model.module.save_pretrained(current_model_directory)
+        get_model_for_saving().save_pretrained(current_model_directory)
 
         optimizer_checkpoint = {
             "optimizer": optimizer.state_dict(),
