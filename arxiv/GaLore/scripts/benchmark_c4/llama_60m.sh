@@ -13,6 +13,3 @@ torchrun --standalone --nproc_per_node 1 torchrun_main.py \
     --dtype bfloat16 \
     --eval_every 1000 \
     --optimizer galore_adamw 
-
-
-   CUDA_VISIBLE_DEVICES=2 torchrun --standalone --nproc_per_node 1 torchrun_main.py --model_type llama --model_config baseline_configs/llama_60m.json --lr 0.001 --batch_size 128 --total_batch_size 512 --num_training_steps 10000 --warmup_steps 1000 --weight_decay 0 --dtype bfloat16 --eval_every 1000 --optimizer adam --scheduler cosine --run_name baseline-60m-cosine-galorefolder

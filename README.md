@@ -8,7 +8,7 @@ Set hyperparameters by checking CoLA/main.py args and then
 
 run CoLA/scripts/baseline_scripts/baseline60m.sh
 
-    ./baseline60m.sh
+        bash scripts/baseline_scripts/baseline60m.sh/baseline60m.sh
 
 
 ## Cola

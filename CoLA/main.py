@@ -87,7 +87,7 @@ def parse_args(args):
         help="Number of tokens to train on. Overwrites num_training_steps. "
         "You can use M and B suffixes, e.g. 100M or 1B.",
     )
-    parser.add_argument("--save_every", type=int, default=1000)
+    parser.add_argument("--save_every", type=int, default=20000)
     parser.add_argument("--save_dir", type=str, default=None)
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument(
