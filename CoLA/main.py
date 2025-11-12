@@ -261,7 +261,7 @@ def main(args):
         logger.info(f"Shuffling data with seed {seed_for_shuffle}")
         data: datasets.Dataset = data.shuffle(seed=seed_for_shuffle)
 
-    print(data)
+    print(data["train"])
     if not args.single_gpu:
         if args.offline_mode:
             train_data: datasets.Dataset = data["train"]
