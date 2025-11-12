@@ -54,6 +54,7 @@ def parse_args(args):
     parser.add_argument("--wandb_project", type=str, default="TML-CoLA")
     parser.add_argument("--model_config", type=str, required=True)
     parser.add_argument("--offline_mode", default=False, action="store_true")
+    parser.add_argument("--offline_data_path", type=str, default="datasets/c4/tokenized", help="Path to offline tokenized dataset")
     parser.add_argument("--continue_from", type=str, default=None)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--gradient_accumulation", type=int, default=None)
@@ -250,8 +251,8 @@ def main(args):
     logger.info("*" * 40)
 
     if args.offline_mode:
-        logger.info("Loading tokenized data from disk")
-        data = datasets.load_from_disk("/datasets/c4/tokenized")
+        logger.info(f"Loading tokenized data from disk: {args.offline_data_path}")
+        data = datasets.load_from_disk(args.offline_data_path)
         logger.info("Finished loading from disk")
     else:
         data = datasets.load_dataset("allenai/c4", "en", split="train", streaming=True)
