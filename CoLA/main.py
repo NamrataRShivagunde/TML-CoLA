@@ -261,22 +261,23 @@ def main(args):
         logger.info(f"Shuffling data with seed {seed_for_shuffle}")
         data: datasets.Dataset = data.shuffle(seed=seed_for_shuffle)
 
-    print(data["train"])
-    if not args.single_gpu:
-        if args.offline_mode:
-            train_data: datasets.Dataset = data["train"]
+    if args.offline_mode:
+        train_data: datasets.Dataset = data["train"]
+        eval_data = data["validation"]
+        
+        if not args.single_gpu:
             train_data = datasets.distributed.split_dataset_by_node(
                 train_data,
                 rank=global_rank,
                 world_size=world_size,
             )
-            eval_data = data["validation"]
             eval_data = datasets.distributed.split_dataset_by_node(
                 eval_data,
                 rank=global_rank,
                 world_size=world_size,
             )
-        else:
+    else:
+        if not args.single_gpu:
             data = datasets.distributed.split_dataset_by_node(
                 data,
                 rank=global_rank,
