@@ -37,10 +37,10 @@ To run Cola, specify model config at CoLA/cola_configs/cola_60m.json,
 
 Set hyperparameters by checking CoLA/main.py args and then
 
+    cd CoLA
 
-run CoLA/scripts/cola_scripts/cola60m.sh
 
-     bash /scripts/cola_scripts/cola60m.sh/cola60m.sh
+     bash scripts/cola_scripts/cola60m_offline.sh
 
 
 ## to download data first, 

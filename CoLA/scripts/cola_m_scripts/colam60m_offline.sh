@@ -46,4 +46,3 @@ CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --mast
     --run_name $RUN_NAME \
     --offline_mode \
     --offline_data_path ../datasets/c4/tokenized
-    > /results/cola/$RUN_NAME.log 2>&1 &
