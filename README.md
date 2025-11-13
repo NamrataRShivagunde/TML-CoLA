@@ -1,4 +1,5 @@
 # TML-CoLA
+cd TML-CoLA
 
 conda create --name=tml-cola python=3.11
 
@@ -38,3 +39,12 @@ cd /Users/nammu/code/TML-CoLA
 python scripts/download_c4_offline.py --target_tokens 50000 --val_tokens 5000 --output_dir ./datasets/c4/tokenized
 ```
 
+## miniconda
+
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh        
+    
+    bash ~/miniconda.sh
+
+    conda create --name=tml-cola python=3.11
+    
+    conda activate tml-cola
