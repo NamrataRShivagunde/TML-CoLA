@@ -1,4 +1,4 @@
-torchrun --standalone --nproc_per_node 1 main.py \
+torchrun --standalone --nproc_per_node 1 CoLA/main.py \
     --model_config baseline_configs/llama_60m.json \
     --model_type llama \
     --lr 0.001 \

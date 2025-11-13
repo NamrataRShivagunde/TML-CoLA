@@ -12,10 +12,22 @@ To run baseline, specify model config at CoLA/baseline_configs/llama_60m.json,
 
 Set hyperparameters by checking CoLA/main.py args and then
 
-
-run CoLA/scripts/baseline_scripts/baseline60m.sh
-
-        bash scripts/baseline_scripts/baseline60m.sh/baseline60m.sh
+torchrun --standalone --nproc_per_node 1 CoLA/main.py \
+    --model_config CoLA/baseline_configs/llama_60m.json \
+    --model_type llama \
+    --lr 0.001 \
+    --batch_size 128 \
+    --total_batch_size 512 \
+    --num_training_steps 10000 \
+    --warmup_steps 1000 \
+    --weight_decay 0 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --optimizer adamw \
+    --run_name baseline-60m-cosine \
+    --scheduler cosine \
+    --offline_mode \
+    --offline_data_path datasets/c4/tokenized
 
 
 ## Cola
@@ -36,7 +48,7 @@ run CoLA/scripts/cola_scripts/cola60m.sh
 
 ```bash
 cd /Users/nammu/code/TML-CoLA
-python scripts/download_c4_offline.py --target_tokens 50000 --val_tokens 5000 --output_dir ./datasets/c4/tokenized
+    python scripts/download_c4_offline.py --target_tokens 50000 --val_tokens 5000 --output_dir ./datasets/c4/tokenized
 ```
 
 ## miniconda
