@@ -22,7 +22,7 @@ Notes:
 
 import os
 import argparse
-from tqdm import tqdm
+#from tqdm import tqdm
 from datasets import load_dataset, Dataset, DatasetDict
 from transformers import AutoTokenizer
 
@@ -40,7 +40,7 @@ def gather_examples(streaming_split, tokenizer, max_length, target_tokens, batch
     stream = load_dataset("allenai/c4", "en", split=streaming_split, streaming=True)
 
     batch_texts = []
-    pbar = tqdm(unit="examples", desc=f"Collecting from {streaming_split}")
+    #pbar = tqdm(unit="examples", desc=f"Collecting from {streaming_split}")
     pad_id = tokenizer.pad_token_id
 
     for ex in stream:
@@ -63,7 +63,7 @@ def gather_examples(streaming_split, tokenizer, max_length, target_tokens, batch
                 total_tokens += non_pad
                 input_ids_list.append(list(ids))
                 attention_mask_list.append(list(att))
-                pbar.update(1)
+                #pbar.update(1)
                 if total_tokens >= target_tokens:
                     break
             batch_texts = []
@@ -84,11 +84,11 @@ def gather_examples(streaming_split, tokenizer, max_length, target_tokens, batch
             total_tokens += non_pad
             input_ids_list.append(list(ids))
             attention_mask_list.append(list(att))
-            pbar.update(1)
+            #pbar.update(1)
             if total_tokens >= target_tokens:
                 break
 
-    pbar.close()
+    #pbar.close()
     tokenized_dict = {"input_ids": input_ids_list, "attention_mask": attention_mask_list}
     return tokenized_dict, total_tokens
 
