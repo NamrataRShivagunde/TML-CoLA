@@ -44,6 +44,4 @@ CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --mast
     --eval_every 1000 \
     --grad_clipping $GC \
     --run_name $RUN_NAME \
-    --wandb_project cola-130m \
-    $continue_from_flag \
-    > /results/cola/$RUN_NAME.log 2>&1 &
+    --wandb_project cola-130m
