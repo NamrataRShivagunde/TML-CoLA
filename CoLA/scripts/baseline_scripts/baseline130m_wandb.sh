@@ -1,4 +1,4 @@
-DEVICE=${DEVICE-"4"}
+DEVICE=${DEVICE-"7"}
 IFS=',' read -ra array <<< "$DEVICE"
 NGPU="${#array[@]}"
 PORT=$(($RANDOM + 10000))
