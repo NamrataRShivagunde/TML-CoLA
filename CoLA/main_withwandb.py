@@ -16,7 +16,7 @@ from transformers import LlamaForCausalLM
 from transformers import default_data_collator
 import datasets
 import datasets.distributed
-#import wandb
+import wandb
 from tqdm import tqdm
 from loguru import logger
 from pretraining_utils import training_utils, args_utils
@@ -241,7 +241,7 @@ def main(args):
             if args.run_name is None
             else args.run_name
         )
-        #wandb.init(project=args.wandb_project, name=run_name)
+        wandb.init(project=args.wandb_project, name=run_name)
 
     logger.info(f"Using dist with rank {global_rank} (only rank 0 will log)")
     logger.info("*" * 40)
@@ -471,8 +471,8 @@ def main(args):
     )
 
     if global_rank == 0:
-        # wandb.config.update(run_config, allow_val_change=True)
-        # wandb.save(os.path.abspath(__file__), policy="now")  # save current script
+        wandb.config.update(run_config, allow_val_change=True)
+        wandb.save(os.path.abspath(__file__), policy="now")  # save current script
         pbar = tqdm(
             total=args.num_training_steps - update_step, desc="Update steps", ncols=80
         )
@@ -576,7 +576,7 @@ def main(args):
                 "update_step": update_step,
                 "global_step": global_step,
                 "config": run_config,
-                #"wandb": wandb.run.dir,
+                "wandb": wandb.run.dir,
                 "dtype": args.dtype,
             }
             torch.save(optimizer_checkpoint, f"{current_model_directory}/optimizer.pt")
@@ -592,11 +592,11 @@ def main(args):
                 json.dump(training_state_checkpoint, f, indent=4)
 
             # # save wandb related info
-            # wandb_info = {
-            #     "wandb_id": wandb.run.id,
-            # }
-            # with open(f"{args.save_dir}/wandb.json", "w") as f:
-            #     json.dump(wandb_info, f, indent=4)
+            wandb_info = {
+                "wandb_id": wandb.run.id,
+            }
+            with open(f"{args.save_dir}/wandb.json", "w") as f:
+                json.dump(wandb_info, f, indent=4)
 
         # evaluation
         if update_step % args.eval_every == 0:
@@ -612,15 +612,15 @@ def main(args):
                 args.batch_size,
                 eval_dataloader,
             )
-            # if global_rank == 0:
-            #     wandb.log(
-            #         {
-            #             "final_eval_loss": total_loss,
-            #             "final_eval_perplexity": np.exp(total_loss),
-            #             "final_eval_tokens": evaluated_on_tokens,
-            #         },
-            #         step=global_step,
-            #     )
+            if global_rank == 0:
+                wandb.log(
+                    {
+                        "final_eval_loss": total_loss,
+                        "final_eval_perplexity": np.exp(total_loss),
+                        "final_eval_tokens": evaluated_on_tokens,
+                    },
+                    step=global_step,
+                )
             logger.info(
                 f"Eval loss and perplexity at step {update_step}: {total_loss}, {np.exp(total_loss)}"
             )
@@ -638,20 +638,20 @@ def main(args):
         torch.cuda.reset_peak_memory_stats()
 
         if global_rank == 0:
-            # wandb.log(
-            #     {
-            #         "loss": loss.item(),
-            #         "lr": lr,
-            #         "update_step": update_step,
-            #         "tokens_seen": tokens_seen,
-            #         "throughput_tokens": tokens_in_update / update_time,
-            #         "throughput_examples": args.total_batch_size / update_time,
-            #         "throughput_batches": batches_in_update / update_time,
-            #         "gradnorm": grad_norm,
-            #         "max_memory": max_memory,
-            #     },
-            #     step=global_step,
-            # )
+            wandb.log(
+                {
+                    "loss": loss.item(),
+                    "lr": lr,
+                    "update_step": update_step,
+                    "tokens_seen": tokens_seen,
+                    "throughput_tokens": tokens_in_update / update_time,
+                    "throughput_examples": args.total_batch_size / update_time,
+                    "throughput_batches": batches_in_update / update_time,
+                    "gradnorm": grad_norm,
+                    "max_memory": max_memory,
+                },
+                step=global_step,
+            )
 
         update_time = time.time()
 

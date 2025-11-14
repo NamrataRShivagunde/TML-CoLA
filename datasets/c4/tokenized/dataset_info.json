@@ -1,0 +1,8 @@
+{
+  "tokenizer": "t5-base",
+  "max_length": 256,
+  "train_non_pad_tokens": 725,
+  "train_examples": 4,
+  "val_non_pad_tokens": 256,
+  "val_examples": 1
+}
