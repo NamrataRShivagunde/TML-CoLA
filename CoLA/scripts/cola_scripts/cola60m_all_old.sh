@@ -191,8 +191,8 @@ CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 main_withwandb.p
     --weight_decay 0.01 \
     --dtype bfloat16 \
     --eval_every 1000 \
-    --grad_clipping 0.5 \
+    --grad_clipping 1 \
     --stable_steps 6000 \
     --save_every 10000 \
     --scheduler warm_stable_decay \
-    --run_name cola-60m-wsd-init-scaledpt45
+    --run_name cola-60m-wsd-init-scaledpt7clipgrad1
