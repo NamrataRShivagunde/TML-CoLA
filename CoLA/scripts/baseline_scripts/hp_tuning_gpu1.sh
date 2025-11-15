@@ -17,7 +17,7 @@ SAVE_DIR="./hp_tuning_results"
 
 # Default values (used when not tuning a specific parameter)
 DEFAULT_LR=0.001
-DEFAULT_WARMUP=2000
+DEFAULT_WARMUP=1000
 DEFAULT_STABLE=7000
 DEFAULT_WD=0.01
 
