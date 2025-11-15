@@ -195,4 +195,4 @@ CUDA_VISIBLE_DEVICES=4 torchrun --standalone --nproc-per-node=1 main_withwandb.p
     --stable_steps 6000 \
     --save_every 10000 \
     --scheduler warm_stable_decay \
-    --run_name cola-60m-wsd-init-scaledpt25
+    --run_name cola-60m-wsd-init-scaledpt4
