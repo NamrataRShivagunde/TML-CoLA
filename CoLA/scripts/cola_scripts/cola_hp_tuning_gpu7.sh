@@ -3,7 +3,7 @@
 # This script tunes: Stable Steps and Weight Decay
 
 # Base configuration
-MODEL_CONFIG="cola_configs/cola_60m.json"
+MODEL_CONFIG="CoLA/cola_configs/cola_60m.json"
 MODEL_TYPE="cola"
 BATCH_SIZE=128
 TOTAL_BATCH_SIZE=512
