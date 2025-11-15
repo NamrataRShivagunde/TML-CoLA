@@ -60,3 +60,23 @@ cd /Users/nammu/code/TML-CoLA
     conda create --name=tml-cola python=3.11
     
     conda activate tml-cola
+
+
+
+
+
+
+CUDA_VISIBLE_DEVICES=6 torchrun --standalone --nproc_per_node 1 main_withwandb.py \
+    --model_config baseline_configs/llama_60m.json \
+    --model_type llama \
+    --lr 0.001 \
+    --batch_size 128 \
+    --total_batch_size 1024 \
+    --num_training_steps 10000 \
+    --warmup_steps 1000 \
+    --weight_decay 0 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --optimizer adamw \
+    --run_name baseline-60m-wsd-gbs1024 \
+    --scheduler warm_stable_decay

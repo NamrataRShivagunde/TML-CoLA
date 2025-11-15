@@ -44,3 +44,19 @@ CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --mast
     --eval_every 1000 \
     --grad_clipping $GC \
     --run_name $RUN_NAME 
+
+
+torchrun --standalone --nproc_per_node 1 main_withwandb.py \
+    --model_config baseline_configs/llama_130m.json \
+    --model_type llama \
+    --lr 0.003 \
+    --batch_size 128 \
+    --total_batch_size 512 \
+    --num_training_steps 20000 \
+    --warmup_steps 2000 \
+    --weight_decay 0.01 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --optimizer adamw \
+    --run_name baseline-130m-cosine \
+    --scheduler cosine
