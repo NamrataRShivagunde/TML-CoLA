@@ -45,7 +45,7 @@ for lr in "${LR_VALUES[@]}"; do
     
     RUN_NAME="cola-60m-wsd-init0.7-clipgrad1-lr${lr}-wm${DEFAULT_WARMUP}-st${DEFAULT_STABLE}-dy${DECAY_STEPS}"
     
-    CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_type $MODEL_TYPE \
         --model_config $MODEL_CONFIG \
         --lr $lr \
@@ -92,7 +92,7 @@ for warmup in "${WARMUP_VALUES[@]}"; do
     
     RUN_NAME="cola-60m-wsd-init0.7-clipgrad1-lr${DEFAULT_LR}-wm${warmup}-st${STABLE}-dy${DECAY_STEPS}"
     
-    CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_type $MODEL_TYPE \
         --model_config $MODEL_CONFIG \
         --lr $DEFAULT_LR \

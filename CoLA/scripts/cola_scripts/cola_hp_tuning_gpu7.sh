@@ -20,7 +20,7 @@ DEFAULT_LR=0.006
 DEFAULT_WARMUP=2000
 DEFAULT_STABLE=6000
 DEFAULT_WD=0.01
-DEFAULT_CLIP_GRAD=0.5
+DEFAULT_CLIP_GRAD=1.0 # init 0.7 scaling
 
 echo "==================================================================================="
 echo "Starting CoLA Hyperparameter Tuning on GPU 1: Stable Steps & Weight Decay"
@@ -45,7 +45,7 @@ for stable in "${STABLE_VALUES[@]}"; do
     
     RUN_NAME="cola-60m-wsd-init-scalept5-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-stable${stable}-decay${DECAY_STEPS}"
     
-    CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
         --model_type $MODEL_TYPE \
         --model_config $MODEL_CONFIG \
         --lr $DEFAULT_LR \
@@ -90,7 +90,7 @@ for wd in "${WD_VALUES[@]}"; do
     
     RUN_NAME="cola-60m-wsd-init-scalept5-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-stable${DEFAULT_STABLE}-decay${DECAY_STEPS}-wd${wd}"
     
-    CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
         --model_type $MODEL_TYPE \
         --model_config $MODEL_CONFIG \
         --lr $DEFAULT_LR \
