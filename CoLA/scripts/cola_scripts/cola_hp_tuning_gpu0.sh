@@ -78,7 +78,7 @@ done
 echo ""
 echo "### Tuning Warmup Steps ###"
 
-WARMUP_VALUES=(500 1000 4000)
+WARMUP_VALUES=(500 1000 3000 4000)
 
 for warmup in "${WARMUP_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
