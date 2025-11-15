@@ -2,7 +2,7 @@ torchrun --standalone --nproc_per_node 1 main_withwandb.py \
     --model_config baseline_configs/llama_350m.json \
     --model_type llama \
     --lr 0.01 \
-    --batch_size 128 \
+    --batch_size 64 \
     --total_batch_size 512 \
     --num_training_steps 60000 \
     --warmup_steps 6000 \
