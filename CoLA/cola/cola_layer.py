@@ -30,10 +30,10 @@ class ColaLayer(nn.Module):
 
         target_sdv = (in_features + out_features) ** (-1 / 2)
         self.cola_a = nn.Parameter(
-            torch.randn(in_features, rank) / rank ** (1 / 4) * target_sdv ** (1 / 2) * 0.85
+            torch.randn(in_features, rank) / rank ** (1 / 4) * target_sdv ** (1 / 2) * 0.45
         )
         self.cola_b = nn.Parameter(
-            torch.randn(rank, out_features) / rank ** (1 / 4) * target_sdv ** (1 / 2) * 0.85
+            torch.randn(rank, out_features) / rank ** (1 / 4) * target_sdv ** (1 / 2) * 0.45
         )
 
         if bias == False:
