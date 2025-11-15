@@ -3,14 +3,14 @@
 # This script tunes: Combined Configurations (Best combinations from initial sweeps)
 
 # Base configuration
-MODEL_CONFIG="cola_configs/cola_60m.json"
+MODEL_CONFIG="CoLA/cola_configs/cola_60m.json"
 MODEL_TYPE="cola"
 BATCH_SIZE=128
 TOTAL_BATCH_SIZE=512
 NUM_TRAINING_STEPS=10000
 DTYPE="bfloat16"
 EVAL_EVERY=1000
-SAVE_EVERY=10000
+SAVE_EVERY=20000
 OPTIMIZER="adamw"
 SCHEDULER="warm_stable_decay"
 SAVE_DIR="./cola_hp_tuning_results"
