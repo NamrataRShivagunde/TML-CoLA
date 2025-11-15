@@ -1,5 +1,5 @@
 #!/bin/bash
-
+export CUDA_VISIBLE_DEVICES=5
 scripts=(
     "bash scripts/baseline_scripts/baseline_350m.sh"
     "bash scripts/baseline_scripts/baseline_1b.sh"
