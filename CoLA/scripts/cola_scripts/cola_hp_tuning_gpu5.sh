@@ -29,11 +29,11 @@ echo "### Testing Combined Hyperparameter Configurations ###"
 echo "-------------------------------------------------------------------"
 echo "Config 1: High LR + High WD"
 echo "-------------------------------------------------------------------"
-RUN_NAME="cola-60m-wsd-init-scalept5-lr0.008-warm2000-stable6000-decay2000-wd0.02-clipgrad0.5"
-CUDA_VISIBLE_DEVICES=3 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
+RUN_NAME="cola-60m-wsd-init-scalept7-lr0.01-warm2000-stable6000-decay2000-wd0.02-clipgrad1"
+CUDA_VISIBLE_DEVICES=5 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
     --model_type $MODEL_TYPE \
     --model_config $MODEL_CONFIG \
-    --lr 0.008 \
+    --lr 0.01 \
     --optimizer $OPTIMIZER \
     --batch_size $BATCH_SIZE \
     --total_batch_size $TOTAL_BATCH_SIZE \
@@ -44,7 +44,7 @@ CUDA_VISIBLE_DEVICES=3 torchrun --standalone --nproc_per_node=1 main_withwandb.p
     --dtype $DTYPE \
     --eval_every $EVAL_EVERY \
     --save_every $SAVE_EVERY \
-    --grad_clipping 0.5 \
+    --grad_clipping 1.0 \
     --scheduler $SCHEDULER \
     --run_name $RUN_NAME \
     --save_dir $SAVE_DIR \

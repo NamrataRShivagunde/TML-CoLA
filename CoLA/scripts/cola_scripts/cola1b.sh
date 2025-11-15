@@ -30,7 +30,7 @@ if [ "${WU}" != "10000" ]; then
     RUN_NAME=$RUN_NAME-WU-$WU
 fi
 
-CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --master-port=$PORT main.py \
+CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --master-port=$PORT main_withwandb.py \
     --model_type cola \
     --model_config cola_configs/$CONFIG_NAME.json \
     --lr $LR \
@@ -46,5 +46,4 @@ CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --mast
     --grad_clipping $GC \
     --run_name $RUN_NAME \
     --wandb_project cola-1b \
-    $continue_from_flag \
-    > /results/cola/$RUN_NAME.log 2>&1 &
+    --scheduler cosine
