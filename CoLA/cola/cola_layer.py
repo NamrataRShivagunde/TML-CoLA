@@ -17,7 +17,7 @@ class ColaLayer(nn.Module):
         rank,
         bias=True,
         lr_act=True,
-        lr_act_type="gelu",
+        lr_act_type="silu",
     ):
         super(ColaLayer, self).__init__()
 

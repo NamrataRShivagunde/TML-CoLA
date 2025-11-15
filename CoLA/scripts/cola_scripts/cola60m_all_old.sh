@@ -182,17 +182,17 @@ CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc-per-node=1 main.py \
 CUDA_VISIBLE_DEVICES=6 torchrun --standalone --nproc-per-node=1 main_withwandb.py \
     --model_type cola \
     --model_config cola_configs/cola_60m.json \
-    --lr 0.006 \
+    --lr 0.01 \
     --optimizer adamw \
     --batch_size 128 \
     --total_batch_size 512 \
     --num_training_steps 10000 \
     --warmup_steps 2000 \
-    --weight_decay 0.01 \
+    --weight_decay 0.001 \
     --dtype bfloat16 \
     --eval_every 1000 \
     --grad_clipping 0.5 \
     --stable_steps 6000 \
     --save_every 10000 \
     --scheduler warm_stable_decay \
-    --run_name cola-60m-wsd-lract-gelu
+    --run_name cola-60m-wsd-lrpt01-weightdecaypt001
