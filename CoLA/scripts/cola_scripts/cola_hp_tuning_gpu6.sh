@@ -23,29 +23,29 @@ DEFAULT_WD=0.01
 DEFAULT_CLIP_GRAD=1.0 # init 0.7 scaling
 
 echo "==================================================================================="
-echo "Starting CoLA Hyperparameter Tuning on GPU 1: Weight Decay"
+echo "Starting CoLA Hyperparameter Tuning on GPU 1: Stable Steps & Weight Decay"
 echo "==================================================================================="
 
-      
-# ========================
-# TUNING WEIGHT DECAY
-# ========================
+# =======================
+# TUNING STABLE STEPS
+# =======================
 echo ""
-echo "### Tuning Weight Decay ###"
+echo "### Tuning Stable Steps ###"
 
-WD_VALUES=(0.0 0.005 0.02 0.05)
+# Different stable ratios: 50%, 60%, 65%, 70%, 75% of total steps
+STABLE_VALUES=(0 1000 2000 3000 4000 5000 6000 7000 7500)
 
-for wd in "${WD_VALUES[@]}"; do
+for stable in "${STABLE_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
-    echo "Running with weight_decay=$wd"
+    echo "Running with stable_steps=$stable"
     echo "-------------------------------------------------------------------"
     
-    # Calculate decay steps
-    DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - DEFAULT_STABLE))
+    # Calculate decay steps (total - warmup - stable)
+    DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - stable))
     
-    RUN_NAME="cola-60m-wsd-init0.7-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-stable${DEFAULT_STABLE}-decay${DECAY_STEPS}-wd${wd}"
+    RUN_NAME="cola-60m-wsd-init0.7-clipgrad1-lr${DEFAULT_LR}-wm${DEFAULT_WARMUP}-st${stable}-dy${DECAY_STEPS}"
     
-    CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=6 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_type $MODEL_TYPE \
         --model_config $MODEL_CONFIG \
         --lr $DEFAULT_LR \
@@ -54,8 +54,8 @@ for wd in "${WD_VALUES[@]}"; do
         --total_batch_size $TOTAL_BATCH_SIZE \
         --num_training_steps $NUM_TRAINING_STEPS \
         --warmup_steps $DEFAULT_WARMUP \
-        --stable_steps $DEFAULT_STABLE \
-        --weight_decay $wd \
+        --stable_steps $stable \
+        --weight_decay $DEFAULT_WD \
         --dtype $DTYPE \
         --eval_every $EVAL_EVERY \
         --save_every $SAVE_EVERY \
@@ -65,14 +65,10 @@ for wd in "${WD_VALUES[@]}"; do
         --save_dir $SAVE_DIR \
         --single_gpu || {
         echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
-        echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$DEFAULT_WARMUP, stable_steps=$DEFAULT_STABLE, weight_decay=$wd, grad_clipping=$DEFAULT_CLIP_GRAD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
+        echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$DEFAULT_WARMUP, stable_steps=$stable, weight_decay=$DEFAULT_WD, grad_clipping=$DEFAULT_CLIP_GRAD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
     }
     
     echo "Completed: $RUN_NAME"
     echo ""
 done
 
-echo "==================================================================================="
-echo "GPU 1 CoLA Hyperparameter Tuning Complete!"
-echo "Results saved to: $SAVE_DIR/hp_results.txt"
-echo "==================================================================================="
