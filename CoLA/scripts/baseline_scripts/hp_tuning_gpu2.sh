@@ -72,26 +72,25 @@ for lr in "${LR_VALUES[@]}"; do
     echo ""
 done
 
+
+
+# stable_steps 
+# make section for tuning stable_steps
 # ========================
-# TUNING WARMUP STEPS
+# TUNING stable STEPS
 # ========================
 echo ""
-echo "### Tuning Warmup Steps ###"
-
-WARMUP_VALUES=(500 1000 3000 4000)
-
-for warmup in "${WARMUP_VALUES[@]}"; do
+echo "### Tuning Stable Steps ###"
+STABLE_VALUES=(0 1000 2000 3000 4000 5000 6000 7000 8000 9000)
+for stable in "${STABLE_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
-    echo "Running with warmup_steps=$warmup"
+    echo "Running with stable_steps=$stable"
     echo "-------------------------------------------------------------------"
     
-    # Adjust stable steps to maintain total steps
-    # stable_steps = total_steps - warmup_steps - decay_buffer
-    # Let's keep decay at 1000 steps minimum
-    STABLE=$((NUM_TRAINING_STEPS - warmup - 1000))
-    DECAY_STEPS=1000
+    # Calculate decay steps (total - warmup - stable)
+    DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - stable))
     
-    RUN_NAME="baseline-60m-wsd-lr${DEFAULT_LR}-warm${warmup}-decay${DECAY_STEPS}-stable${STABLE}"
+    RUN_NAME="baseline-60m-wsd-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-decay${DECAY_STEPS}-stable${stable}"
     
     CUDA_VISIBLE_DEVICES=2 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_config $MODEL_CONFIG \
@@ -100,8 +99,8 @@ for warmup in "${WARMUP_VALUES[@]}"; do
         --batch_size $BATCH_SIZE \
         --total_batch_size $TOTAL_BATCH_SIZE \
         --num_training_steps $NUM_TRAINING_STEPS \
-        --warmup_steps $warmup \
-        --stable_steps $STABLE \
+        --warmup_steps $DEFAULT_WARMUP \
+        --stable_steps $stable \
         --weight_decay $DEFAULT_WD \
         --dtype $DTYPE \
         --eval_every $EVAL_EVERY \
@@ -112,14 +111,9 @@ for warmup in "${WARMUP_VALUES[@]}"; do
         --save_dir $SAVE_DIR \
         --single_gpu || {
         echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
-        echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$warmup, stable_steps=$STABLE, weight_decay=$DEFAULT_WD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
+        echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$DEFAULT_WARMUP, stable_steps=$stable, weight_decay=$DEFAULT_WD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
     }
     
     echo "Completed: $RUN_NAME"
     echo ""
 done
-
-echo "==================================================================================="
-echo "GPU 0 Hyperparameter Tuning Complete!"
-echo "Results saved to: $SAVE_DIR/hp_results.txt"
-echo "==================================================================================="

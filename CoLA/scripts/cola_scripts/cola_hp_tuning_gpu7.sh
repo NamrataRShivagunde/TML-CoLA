@@ -10,7 +10,7 @@ TOTAL_BATCH_SIZE=512
 NUM_TRAINING_STEPS=10000
 DTYPE="bfloat16"
 EVAL_EVERY=1000
-SAVE_EVERY=10000
+SAVE_EVERY=20000
 OPTIMIZER="adamw"
 SCHEDULER="warm_stable_decay"
 SAVE_DIR="./cola_hp_tuning_results"
@@ -33,7 +33,7 @@ echo ""
 echo "### Tuning Stable Steps ###"
 
 # Different stable ratios: 50%, 60%, 65%, 70%, 75% of total steps
-STABLE_VALUES=(5000 6500 7000 7500)
+STABLE_VALUES=(0 1000 2000 3000 4000 5000 6000 7000 7500)
 
 for stable in "${STABLE_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
@@ -43,9 +43,9 @@ for stable in "${STABLE_VALUES[@]}"; do
     # Calculate decay steps (total - warmup - stable)
     DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - stable))
     
-    RUN_NAME="cola-60m-wsd-init-scalept5-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-stable${stable}-decay${DECAY_STEPS}"
+    RUN_NAME="cola-60m-wsd-init0.7-clipgrad1-lr${DEFAULT_LR}-wm${DEFAULT_WARMUP}-st${stable}-dy${DECAY_STEPS}"
     
-    CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_type $MODEL_TYPE \
         --model_config $MODEL_CONFIG \
         --lr $DEFAULT_LR \
@@ -88,9 +88,9 @@ for wd in "${WD_VALUES[@]}"; do
     # Calculate decay steps
     DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - DEFAULT_STABLE))
     
-    RUN_NAME="cola-60m-wsd-init-scalept5-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-stable${DEFAULT_STABLE}-decay${DECAY_STEPS}-wd${wd}"
+    RUN_NAME="cola-60m-wsd-init0.7-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-stable${DEFAULT_STABLE}-decay${DECAY_STEPS}-wd${wd}"
     
-    CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_type $MODEL_TYPE \
         --model_config $MODEL_CONFIG \
         --lr $DEFAULT_LR \
