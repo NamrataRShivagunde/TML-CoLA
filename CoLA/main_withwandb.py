@@ -724,6 +724,14 @@ def main(args):
         logger.info(
             f"Eval loss and perplexity at step {update_step}: {total_loss}, {np.exp(total_loss)}"
         )
+        
+        # Log hyperparameters and final eval loss to file
+        results_file = os.path.join(args.save_dir if args.save_dir else ".", "hp_results.txt")
+        os.makedirs(os.path.dirname(results_file) if os.path.dirname(results_file) else ".", exist_ok=True)
+        with open(results_file, "a") as f:
+            f.write(f"run_name={args.run_name}, lr={args.lr}, warmup_steps={args.warmup_steps}, "
+                   f"stable_steps={args.stable_steps}, weight_decay={args.weight_decay}, "
+                   f"final_eval_loss={total_loss:.4f}, final_eval_perplexity={np.exp(total_loss):.4f}\n")
 
     logger.info("Script finished successfully")
     print(f"Rank {global_rank} finished successfully")
