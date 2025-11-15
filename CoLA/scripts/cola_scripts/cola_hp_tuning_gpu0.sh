@@ -10,7 +10,7 @@ TOTAL_BATCH_SIZE=512
 NUM_TRAINING_STEPS=10000
 DTYPE="bfloat16"
 EVAL_EVERY=1000
-SAVE_EVERY=10000
+SAVE_EVERY=20000
 OPTIMIZER="adamw"
 SCHEDULER="warm_stable_decay"
 SAVE_DIR="./cola_hp_tuning_results"
@@ -20,7 +20,7 @@ DEFAULT_LR=0.006
 DEFAULT_WARMUP=2000
 DEFAULT_STABLE=6000
 DEFAULT_WD=0.01
-DEFAULT_CLIP_GRAD=0.5
+DEFAULT_CLIP_GRAD=1.0 # init 0.7 scaling
 
 echo "==================================================================================="
 echo "Starting CoLA Hyperparameter Tuning on GPU 0: Learning Rate & Warmup Steps"
@@ -33,7 +33,7 @@ echo ""
 echo "### Tuning Learning Rate ###"
 
 # CoLA typically uses higher LR than baseline due to low-rank structure
-LR_VALUES=(0.003 0.005 0.008 0.01)
+LR_VALUES=(0.001 0.01 0.03 0.06 0.1) # default is 0.006
 
 for lr in "${LR_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
@@ -43,7 +43,7 @@ for lr in "${LR_VALUES[@]}"; do
     # Calculate decay steps (total - warmup - stable)
     DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - DEFAULT_STABLE))
     
-    RUN_NAME="cola-60m-wsd-init-scalept5-lr${lr}-warm${DEFAULT_WARMUP}-stable${DEFAULT_STABLE}-decay${DECAY_STEPS}"
+    RUN_NAME="cola-60m-wsd-init0.7-clipgrad1-lr${lr}-wm${DEFAULT_WARMUP}-st${DEFAULT_STABLE}-dy${DECAY_STEPS}"
     
     CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
         --model_type $MODEL_TYPE \
@@ -78,7 +78,7 @@ done
 echo ""
 echo "### Tuning Warmup Steps ###"
 
-WARMUP_VALUES=(1000 1500 2500 3000)
+WARMUP_VALUES=(500 1000 4000)
 
 for warmup in "${WARMUP_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
@@ -90,7 +90,7 @@ for warmup in "${WARMUP_VALUES[@]}"; do
     STABLE=$((NUM_TRAINING_STEPS - warmup - 1000))
     DECAY_STEPS=1000
     
-    RUN_NAME="cola-60m-wsd-init-scalept5-lr${DEFAULT_LR}-warm${warmup}-stable${STABLE}-decay${DECAY_STEPS}"
+    RUN_NAME="cola-60m-wsd-init0.7-clipgrad1-lr${DEFAULT_LR}-wm${warmup}-st${STABLE}-dy${DECAY_STEPS}"
     
     CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
         --model_type $MODEL_TYPE \
