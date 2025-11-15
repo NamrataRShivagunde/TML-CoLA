@@ -46,7 +46,7 @@ for lr in "${LR_VALUES[@]}"; do
     
     RUN_NAME="baseline-60m-wsd-lr${lr}-warm${DEFAULT_WARMUP}-decay${DECAY_STEPS}-stable${DEFAULT_STABLE}"
     
-    CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=2 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_config $MODEL_CONFIG \
         --model_type $MODEL_TYPE \
         --lr $lr \
@@ -93,7 +93,7 @@ for warmup in "${WARMUP_VALUES[@]}"; do
     
     RUN_NAME="baseline-60m-wsd-lr${DEFAULT_LR}-warm${warmup}-decay${DECAY_STEPS}-stable${STABLE}"
     
-    CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=2 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_config $MODEL_CONFIG \
         --model_type $MODEL_TYPE \
         --lr $DEFAULT_LR \
