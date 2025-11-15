@@ -638,20 +638,20 @@ def main(args):
         torch.cuda.reset_peak_memory_stats()
 
         if global_rank == 0:
-            wandb.log(
-                {
-                    "loss": loss.item(),
-                    "lr": lr,
-                    "update_step": update_step,
-                    "tokens_seen": tokens_seen,
-                    "throughput_tokens_per_sec": tokens_in_update / update_time,
-                    "throughput_examples_per_sec": args.total_batch_size / update_time,
-                    "throughput_batches_per_sec": batches_in_update / update_time,
-                    "gradnorm": grad_norm,
-                    "max_memory": max_memory,
-                },
-                step=global_step,
-            )
+            # wandb.log(
+            #     {
+            #         "loss": loss.item(),
+            #         "lr": lr,
+            #         "update_step": update_step,
+            #         "tokens_seen": tokens_seen,
+            #         "throughput_tokens": tokens_in_update / update_time,
+            #         "throughput_examples": args.total_batch_size / update_time,
+            #         "throughput_batches": batches_in_update / update_time,
+            #         "gradnorm": grad_norm,
+            #         "max_memory": max_memory,
+            #     },
+            #     step=global_step,
+            # )
 
         update_time = time.time()
 
@@ -677,7 +677,7 @@ def main(args):
             "update_step": update_step,
             "global_step": global_step,
             "config": run_config,
-            "wandb": wandb.run.dir,
+            #"wandb": wandb.run.dir,
             "dtype": args.dtype,
         }
         torch.save(optimizer_checkpoint, f"{current_model_directory}/optimizer.pt")
@@ -712,15 +712,15 @@ def main(args):
         eval_dataloader,
     )
 
-    if global_rank == 0:
-        wandb.log(
-            {
-                "final_eval_loss": total_loss,
-                "final_eval_perplexity": np.exp(total_loss),
-                "final_eval_tokens": evaluated_on_tokens,
-            },
-            step=global_step,
-        )
+    # if global_rank == 0:
+    #     wandb.log(
+    #         {
+    #             "final_eval_loss": total_loss,
+    #             "final_eval_perplexity": np.exp(total_loss),
+    #             "final_eval_tokens": evaluated_on_tokens,
+    #         },
+    #         step=global_step,
+    #     )
         logger.info(
             f"Eval loss and perplexity at step {update_step}: {total_loss}, {np.exp(total_loss)}"
         )

@@ -4,7 +4,7 @@ from functools import partial
 import torch
 from torch.optim.lr_scheduler import LambdaLR
 import transformers
-import bitsandbytes as bnb
+#import bitsandbytes as bnb
 
 
 def get_scheculer(
@@ -255,13 +255,13 @@ def build_optimizer(model, trainable_params, args):
             scale_parameter=False,
             warmup_init=False,
         )
-    elif args.optimizer.lower() == "adam8bit":
-        optimizer = bnb.optim.Adam8bit(trainable_params, lr=args.lr, weight_decay=args.weight_decay)
-    elif args.optimizer.lower() == "adam8bit_per_layer":
-        optimizer = {}
-        for p in model.parameters():
-            if p.requires_grad:
-                optimizer[p] = bnb.optim.Adam8bit([p], lr=args.lr, weight_decay=args.weight_decay)
+    # elif args.optimizer.lower() == "adam8bit":
+    #     optimizer = bnb.optim.Adam8bit(trainable_params, lr=args.lr, weight_decay=args.weight_decay)
+    # elif args.optimizer.lower() == "adam8bit_per_layer":
+    #     optimizer = {}
+    #     for p in model.parameters():
+    #         if p.requires_grad:
+    #             optimizer[p] = bnb.optim.Adam8bit([p], lr=args.lr, weight_decay=args.weight_decay)
         # get scheduler dict
         scheduler_dict = {}
         for p in model.parameters():
