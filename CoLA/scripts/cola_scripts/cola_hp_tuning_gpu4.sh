@@ -3,7 +3,7 @@
 # This script tunes: Gradient Clipping
 
 # Base configuration
-MODEL_CONFIG="cola_configs/cola_60m.json"
+MODEL_CONFIG="CoLA/cola_configs/cola_60m.json"
 MODEL_TYPE="cola"
 BATCH_SIZE=128
 TOTAL_BATCH_SIZE=512
@@ -20,7 +20,7 @@ DEFAULT_LR=0.006
 DEFAULT_WARMUP=2000
 DEFAULT_STABLE=6000
 DEFAULT_WD=0.01
-DEFAULT_CLIP_GRAD=0.5
+DEFAULT_CLIP_GRAD=1.0 # init 0.7 scaling
 
 echo "==================================================================================="
 echo "Starting CoLA Hyperparameter Tuning on GPU 2: Gradient Clipping"
@@ -32,7 +32,7 @@ echo "==========================================================================
 echo ""
 echo "### Tuning Gradient Clipping ###"
 
-CLIP_GRAD_VALUES=(0.0 0.3 1.0 2.0)
+CLIP_GRAD_VALUES=(0.7 1.0 1.5 4.0)
 
 for clip_grad in "${CLIP_GRAD_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
@@ -42,9 +42,9 @@ for clip_grad in "${CLIP_GRAD_VALUES[@]}"; do
     # Calculate decay steps
     DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - DEFAULT_STABLE))
     
-    RUN_NAME="cola-60m-wsd-init-scalept5-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-stable${DEFAULT_STABLE}-decay${DECAY_STEPS}-clipgrad${clip_grad}"
+    RUN_NAME="cola-60m-wsd-init-scalept7-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-stable${DEFAULT_STABLE}-decay${DECAY_STEPS}-clipgrad${clip_grad}"
     
-    CUDA_VISIBLE_DEVICES=2 torchrun --standalone --nproc_per_node=1 main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=4 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_type $MODEL_TYPE \
         --model_config $MODEL_CONFIG \
         --lr $DEFAULT_LR \
