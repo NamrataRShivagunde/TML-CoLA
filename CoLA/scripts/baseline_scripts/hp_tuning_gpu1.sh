@@ -25,55 +25,55 @@ echo "==========================================================================
 echo "Starting Hyperparameter Tuning on GPU 1: Weight Decay & Adam Epsilon"
 echo "==================================================================================="
 
-# =======================
-# TUNING WEIGHT DECAY
-# =======================
-echo ""
-echo "### Tuning Weight Decay ###"
+# # =======================
+# # TUNING WEIGHT DECAY
+# # =======================
+# echo ""
+# echo "### Tuning Weight Decay ###"
 
-WD_VALUES=(0.0 0.005 0.05 0.1)
+# WD_VALUES=(0.0 0.005 0.05 0.1) # all done
 
-for wd in "${WD_VALUES[@]}"; do
-    echo "-------------------------------------------------------------------"
-    echo "Running with weight_decay=$wd"
-    echo "-------------------------------------------------------------------"
+# for wd in "${WD_VALUES[@]}"; do
+#     echo "-------------------------------------------------------------------"
+#     echo "Running with weight_decay=$wd"
+#     echo "-------------------------------------------------------------------"
     
-    # Calculate decay steps (total - warmup - stable)
-    DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - DEFAULT_STABLE))
+#     # Calculate decay steps (total - warmup - stable)
+#     DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - DEFAULT_STABLE))
     
-    RUN_NAME="baseline-60m-wsd-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-decay${DECAY_STEPS}-stable${DEFAULT_STABLE}-wd${wd}"
+#     RUN_NAME="baseline-60m-wsd-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-decay${DECAY_STEPS}-stable${DEFAULT_STABLE}-wd${wd}"
     
-    CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
-        --model_config $MODEL_CONFIG \
-        --model_type $MODEL_TYPE \
-        --lr $DEFAULT_LR \
-        --batch_size $BATCH_SIZE \
-        --total_batch_size $TOTAL_BATCH_SIZE \
-        --num_training_steps $NUM_TRAINING_STEPS \
-        --warmup_steps $DEFAULT_WARMUP \
-        --stable_steps $DEFAULT_STABLE \
-        --weight_decay $wd \
-        --dtype $DTYPE \
-        --eval_every $EVAL_EVERY \
-        --save_every $SAVE_EVERY \
-        --optimizer $OPTIMIZER \
-        --scheduler $SCHEDULER \
-        --run_name $RUN_NAME \
-        --save_dir $SAVE_DIR \
-        --single_gpu || {
-        echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
-        echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$DEFAULT_WARMUP, stable_steps=$DEFAULT_STABLE, weight_decay=$wd, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
-    }
+#     CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+#         --model_config $MODEL_CONFIG \
+#         --model_type $MODEL_TYPE \
+#         --lr $DEFAULT_LR \
+#         --batch_size $BATCH_SIZE \
+#         --total_batch_size $TOTAL_BATCH_SIZE \
+#         --num_training_steps $NUM_TRAINING_STEPS \
+#         --warmup_steps $DEFAULT_WARMUP \
+#         --stable_steps $DEFAULT_STABLE \
+#         --weight_decay $wd \
+#         --dtype $DTYPE \
+#         --eval_every $EVAL_EVERY \
+#         --save_every $SAVE_EVERY \
+#         --optimizer $OPTIMIZER \
+#         --scheduler $SCHEDULER \
+#         --run_name $RUN_NAME \
+#         --save_dir $SAVE_DIR \
+#         --single_gpu || {
+#         echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
+#         echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$DEFAULT_WARMUP, stable_steps=$DEFAULT_STABLE, weight_decay=$wd, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
+#     }
     
-    echo "Completed: $RUN_NAME"
-    echo ""
-done
+#     echo "Completed: $RUN_NAME"
+#     echo ""
+# done
 
-# ========================
-# TUNING CLIP GRAD
-# ========================
-echo ""
-echo "### Tuning Adam Epsilon ###"
+# # ========================
+# # TUNING CLIP GRAD
+# # ========================
+# echo ""
+# echo "### Tuning Adam Epsilon ###"
 
 # Note: Adam epsilon may need to be added as an argument to main_withwandb.py
 # For now, we'll use beta1 as a proxy or you can add --adam_epsilon argument
@@ -120,55 +120,55 @@ echo "Results saved to: $SAVE_DIR/hp_results.txt"
 echo "==================================================================================="
 
 
-# ========================
-# TUNING WARMUP STEPS
-# ========================
-echo ""
-echo "### Tuning Warmup Steps ###"
+# # ========================
+# # TUNING WARMUP STEPS
+# # ========================
+# echo ""
+# echo "### Tuning Warmup Steps ###"
 
-WARMUP_VALUES=(500 1000 3000 4000)
+# WARMUP_VALUES=(500 1000 3000 4000) # done
 
-for warmup in "${WARMUP_VALUES[@]}"; do
-    echo "-------------------------------------------------------------------"
-    echo "Running with warmup_steps=$warmup"
-    echo "-------------------------------------------------------------------"
+# for warmup in "${WARMUP_VALUES[@]}"; do
+#     echo "-------------------------------------------------------------------"
+#     echo "Running with warmup_steps=$warmup"
+#     echo "-------------------------------------------------------------------"
     
-    # Adjust stable steps to maintain total steps
-    # stable_steps = total_steps - warmup_steps - decay_buffer
-    # Let's keep decay at 1000 steps minimum
-    STABLE=$((NUM_TRAINING_STEPS - warmup - 1000))
-    DECAY_STEPS=1000
+#     # Adjust stable steps to maintain total steps
+#     # stable_steps = total_steps - warmup_steps - decay_buffer
+#     # Let's keep decay at 1000 steps minimum
+#     STABLE=$((NUM_TRAINING_STEPS - warmup - 1000))
+#     DECAY_STEPS=1000
     
-    RUN_NAME="baseline-60m-wsd-lr${DEFAULT_LR}-warm${warmup}-decay${DECAY_STEPS}-stable${STABLE}"
+#     RUN_NAME="baseline-60m-wsd-lr${DEFAULT_LR}-warm${warmup}-decay${DECAY_STEPS}-stable${STABLE}"
     
-    CUDA_VISIBLE_DEVICES=2 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
-        --model_config $MODEL_CONFIG \
-        --model_type $MODEL_TYPE \
-        --lr $DEFAULT_LR \
-        --batch_size $BATCH_SIZE \
-        --total_batch_size $TOTAL_BATCH_SIZE \
-        --num_training_steps $NUM_TRAINING_STEPS \
-        --warmup_steps $warmup \
-        --stable_steps $STABLE \
-        --weight_decay $DEFAULT_WD \
-        --dtype $DTYPE \
-        --eval_every $EVAL_EVERY \
-        --save_every $SAVE_EVERY \
-        --optimizer $OPTIMIZER \
-        --scheduler $SCHEDULER \
-        --run_name $RUN_NAME \
-        --save_dir $SAVE_DIR \
-        --single_gpu || {
-        echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
-        echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$warmup, stable_steps=$STABLE, weight_decay=$DEFAULT_WD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
-    }
+#     CUDA_VISIBLE_DEVICES=2 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+#         --model_config $MODEL_CONFIG \
+#         --model_type $MODEL_TYPE \
+#         --lr $DEFAULT_LR \
+#         --batch_size $BATCH_SIZE \
+#         --total_batch_size $TOTAL_BATCH_SIZE \
+#         --num_training_steps $NUM_TRAINING_STEPS \
+#         --warmup_steps $warmup \
+#         --stable_steps $STABLE \
+#         --weight_decay $DEFAULT_WD \
+#         --dtype $DTYPE \
+#         --eval_every $EVAL_EVERY \
+#         --save_every $SAVE_EVERY \
+#         --optimizer $OPTIMIZER \
+#         --scheduler $SCHEDULER \
+#         --run_name $RUN_NAME \
+#         --save_dir $SAVE_DIR \
+#         --single_gpu || {
+#         echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
+#         echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$warmup, stable_steps=$STABLE, weight_decay=$DEFAULT_WD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
+#     }
     
-    echo "Completed: $RUN_NAME"
-    echo ""
-done
+#     echo "Completed: $RUN_NAME"
+#     echo ""
+# done
 
-echo "==================================================================================="
-echo "GPU 0 Hyperparameter Tuning Complete!"
-echo "Results saved to: $SAVE_DIR/hp_results.txt"
-echo "==================================================================================="
+# echo "==================================================================================="
+# echo "GPU 0 Hyperparameter Tuning Complete!"
+# echo "Results saved to: $SAVE_DIR/hp_results.txt"
+# echo "==================================================================================="
 
