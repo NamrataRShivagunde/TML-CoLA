@@ -33,7 +33,7 @@ echo ""
 echo "### Tuning Learning Rate ###"
 
 # CoLA typically uses higher LR than baseline due to low-rank structure
-LR_VALUES=(0.001 0.01 0.03 0.06 0.1) # default is 0.006
+LR_VALUES=(0.001 0.01 0.03 0.06 0.1) # default is 0.006 # done
 
 for lr in "${LR_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
@@ -78,7 +78,7 @@ done
 echo ""
 echo "### Tuning Warmup Steps ###"
 
-WARMUP_VALUES=(500 1000 3000 4000)
+WARMUP_VALUES=(3000) #(500 1000 3000 4000)
 
 for warmup in "${WARMUP_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"

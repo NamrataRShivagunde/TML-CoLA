@@ -15,3 +15,4 @@ scipy
 scikit-learn
 evaluate
 numpy==1.26.4
+tensorboard

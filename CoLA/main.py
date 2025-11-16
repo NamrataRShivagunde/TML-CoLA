@@ -19,6 +19,7 @@ import datasets.distributed
 #import wandb
 from tqdm import tqdm
 from loguru import logger
+from torch.utils.tensorboard import SummaryWriter
 from pretraining_utils import training_utils, args_utils
 from pretraining_utils.dataloader import PreprocessedIterableDataset
 from cola import ColaConfig, ColaForCausalLM, ColaMForCausalLM
@@ -104,6 +105,8 @@ def parse_args(args):
     parser.add_argument("--beta1", type=float, default=0.0)
     # disable ddp, single_gpu
     parser.add_argument("--single_gpu", default=False, action="store_true")
+    # tensorboard logging
+    parser.add_argument("--tensorboard", default=False, action="store_true")
 
     args = parser.parse_args(args)
 
@@ -476,6 +479,10 @@ def main(args):
         pbar = tqdm(
             total=args.num_training_steps - update_step, desc="Update steps", ncols=80
         )
+        if args.tensorboard:
+            tb_writer = SummaryWriter(log_dir=f"tensorboard_logs/{run_name}")
+        else:
+            tb_writer = None
 
     if not args.single_gpu:
         model = torch.nn.parallel.DistributedDataParallel(
@@ -624,6 +631,10 @@ def main(args):
             logger.info(
                 f"Eval loss and perplexity at step {update_step}: {total_loss}, {np.exp(total_loss)}"
             )
+            if global_rank == 0 and tb_writer is not None:
+                tb_writer.add_scalar("final_eval_loss", total_loss, global_step)
+                tb_writer.add_scalar("final_eval_perplexity", np.exp(total_loss), global_step)
+                tb_writer.add_scalar("final_eval_tokens", evaluated_on_tokens, global_step)
             model.train()
 
         if not layer_wise_flag:
@@ -652,6 +663,16 @@ def main(args):
             #     },
             #     step=global_step,
             # )
+            if tb_writer is not None:
+                tb_writer.add_scalar("loss", loss.item(), global_step)
+                tb_writer.add_scalar("lr", lr, global_step)
+                tb_writer.add_scalar("update_step", update_step, global_step)
+                tb_writer.add_scalar("tokens_seen", tokens_seen, global_step)
+                tb_writer.add_scalar("throughput_tokens", tokens_in_update / update_time, global_step)
+                tb_writer.add_scalar("throughput_examples", args.total_batch_size / update_time, global_step)
+                tb_writer.add_scalar("throughput_batches", batches_in_update / update_time, global_step)
+                tb_writer.add_scalar("gradnorm", grad_norm, global_step)
+                tb_writer.add_scalar("max_memory", max_memory, global_step)
 
         update_time = time.time()
 
@@ -712,18 +733,23 @@ def main(args):
         eval_dataloader,
     )
 
-    # if global_rank == 0:
-    #     wandb.log(
-    #         {
-    #             "final_eval_loss": total_loss,
-    #             "final_eval_perplexity": np.exp(total_loss),
-    #             "final_eval_tokens": evaluated_on_tokens,
-    #         },
-    #         step=global_step,
-    #     )
+    if global_rank == 0:
+        # wandb.log(
+        #     {
+        #         "final_eval_loss": total_loss,
+        #         "final_eval_perplexity": np.exp(total_loss),
+        #         "final_eval_tokens": evaluated_on_tokens,
+        #     },
+        #     step=global_step,
+        # )
         logger.info(
             f"Eval loss and perplexity at step {update_step}: {total_loss}, {np.exp(total_loss)}"
         )
+        if tb_writer is not None:
+            tb_writer.add_scalar("final_eval_loss", total_loss, global_step)
+            tb_writer.add_scalar("final_eval_perplexity", np.exp(total_loss), global_step)
+            tb_writer.add_scalar("final_eval_tokens", evaluated_on_tokens, global_step)
+            tb_writer.close()
 
     logger.info("Script finished successfully")
     print(f"Rank {global_rank} finished successfully")

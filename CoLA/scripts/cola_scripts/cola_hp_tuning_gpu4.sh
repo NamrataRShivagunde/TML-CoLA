@@ -32,7 +32,7 @@ echo "==========================================================================
 echo ""
 echo "### Tuning Gradient Clipping ###"
 
-CLIP_GRAD_VALUES=(0.7 1.0 1.5 4.0)
+CLIP_GRAD_VALUES=(0.7 1.0 1.5 4.0) # done
 
 for clip_grad in "${CLIP_GRAD_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
