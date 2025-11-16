@@ -245,6 +245,10 @@ def main(args):
             else args.run_name
         )
         #wandb.init(project=args.wandb_project, name=run_name)
+        
+        # Add file logger
+        os.makedirs("logs", exist_ok=True)
+        logger.add(f"logs/{run_name}.txt", format="{time} {level} {message}")
 
     logger.info(f"Using dist with rank {global_rank} (only rank 0 will log)")
     logger.info("*" * 40)

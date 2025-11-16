@@ -6,6 +6,9 @@ __pycache__/
 # TensorBoard logs
 tensorboard_logs/
 
+# Logs
+logs/
+
 # C extensions
 *.so
 
