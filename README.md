@@ -27,7 +27,8 @@ torchrun --standalone --nproc_per_node 1 CoLA/main.py \
     --run_name baseline-60m-cosine \
     --scheduler cosine \
     --offline_mode \
-    --offline_data_path datasets/c4/tokenized
+    --offline_data_path datasets/c4/tokenized \
+    --tensorboard
 
 
 ## Cola
