@@ -72,54 +72,54 @@ echo "==========================================================================
 #     echo ""
 # done
 
-# ========================
-# TUNING WARMUP STEPS
-# ========================
-echo ""
-echo "### Tuning Warmup Steps ###"
+# # ========================
+# # TUNING WARMUP STEPS
+# # ========================
+# echo ""
+# echo "### Tuning Warmup Steps ###"
 
-WARMUP_VALUES=(3000) #(500 1000 3000 4000)
+# WARMUP_VALUES=(3000) #(500 1000 3000 4000)
 
-for warmup in "${WARMUP_VALUES[@]}"; do
-    echo "-------------------------------------------------------------------"
-    echo "Running with warmup_steps=$warmup"
-    echo "-------------------------------------------------------------------"
+# for warmup in "${WARMUP_VALUES[@]}"; do
+#     echo "-------------------------------------------------------------------"
+#     echo "Running with warmup_steps=$warmup"
+#     echo "-------------------------------------------------------------------"
     
-    # Adjust stable steps to maintain total = warmup + stable + decay
-    # Keep decay at 1000 steps minimum
-    STABLE=$((NUM_TRAINING_STEPS - warmup - 1000))
-    DECAY_STEPS=1000
+#     # Adjust stable steps to maintain total = warmup + stable + decay
+#     # Keep decay at 1000 steps minimum
+#     STABLE=$((NUM_TRAINING_STEPS - warmup - 1000))
+#     DECAY_STEPS=1000
     
-    RUN_NAME="cola-60m-wsd-init0.7-clipgrad1-lr${DEFAULT_LR}-wm${warmup}-st${STABLE}-dy${DECAY_STEPS}"
+#     RUN_NAME="cola-60m-wsd-init0.7-clipgrad1-lr${DEFAULT_LR}-wm${warmup}-st${STABLE}-dy${DECAY_STEPS}"
     
-    CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
-        --model_type $MODEL_TYPE \
-        --model_config $MODEL_CONFIG \
-        --lr $DEFAULT_LR \
-        --optimizer $OPTIMIZER \
-        --batch_size $BATCH_SIZE \
-        --total_batch_size $TOTAL_BATCH_SIZE \
-        --num_training_steps $NUM_TRAINING_STEPS \
-        --warmup_steps $warmup \
-        --stable_steps $STABLE \
-        --weight_decay $DEFAULT_WD \
-        --dtype $DTYPE \
-        --eval_every $EVAL_EVERY \
-        --save_every $SAVE_EVERY \
-        --grad_clipping $DEFAULT_CLIP_GRAD \
-        --scheduler $SCHEDULER \
-        --run_name $RUN_NAME \
-        --save_dir $SAVE_DIR \
-        --single_gpu || {
-        echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
-        echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$warmup, stable_steps=$STABLE, weight_decay=$DEFAULT_WD, grad_clipping=$DEFAULT_CLIP_GRAD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
-    }
+#     CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+#         --model_type $MODEL_TYPE \
+#         --model_config $MODEL_CONFIG \
+#         --lr $DEFAULT_LR \
+#         --optimizer $OPTIMIZER \
+#         --batch_size $BATCH_SIZE \
+#         --total_batch_size $TOTAL_BATCH_SIZE \
+#         --num_training_steps $NUM_TRAINING_STEPS \
+#         --warmup_steps $warmup \
+#         --stable_steps $STABLE \
+#         --weight_decay $DEFAULT_WD \
+#         --dtype $DTYPE \
+#         --eval_every $EVAL_EVERY \
+#         --save_every $SAVE_EVERY \
+#         --grad_clipping $DEFAULT_CLIP_GRAD \
+#         --scheduler $SCHEDULER \
+#         --run_name $RUN_NAME \
+#         --save_dir $SAVE_DIR \
+#         --single_gpu || {
+#         echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
+#         echo "run_name=$RUN_NAME, lr=$DEFAULT_LR, warmup_steps=$warmup, stable_steps=$STABLE, weight_decay=$DEFAULT_WD, grad_clipping=$DEFAULT_CLIP_GRAD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
+#     }
     
-    echo "Completed: $RUN_NAME"
-    echo ""
-done
+#     echo "Completed: $RUN_NAME"
+#     echo ""
+# done
 
-echo "==================================================================================="
-echo "GPU 0 CoLA Hyperparameter Tuning Complete!"
-echo "Results saved to: $SAVE_DIR/hp_results.txt"
-echo "==================================================================================="
+# echo "==================================================================================="
+# echo "GPU 0 CoLA Hyperparameter Tuning Complete!"
+# echo "Results saved to: $SAVE_DIR/hp_results.txt"
+# echo "==================================================================================="

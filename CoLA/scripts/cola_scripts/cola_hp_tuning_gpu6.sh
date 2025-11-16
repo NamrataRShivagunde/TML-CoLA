@@ -33,7 +33,7 @@ echo ""
 echo "### Tuning Stable Steps ###"
 
 # Different stable ratios: 50%, 60%, 65%, 70%, 75% of total steps
-STABLE_VALUES=(0 1000 2000 3000 4000 5000 6000 7000 7500) # running at 4000
+STABLE_VALUES=(0 1000 2000 3000 4000 5000 6000 7000 7500) # running at 6000
 
 for stable in "${STABLE_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
