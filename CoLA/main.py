@@ -248,7 +248,7 @@ def main(args):
         
         # Add file logger
         os.makedirs("logs", exist_ok=True)
-        logger.add(f"logs/{run_name}.txt", format="{time} {level} {message}")
+        logger.add(f"logs/{run_name}.txt", format="{time} {level} {message}", backtrace=True, diagnose=True)
 
     logger.info(f"Using dist with rank {global_rank} (only rank 0 will log)")
     logger.info("*" * 40)
@@ -762,4 +762,8 @@ def main(args):
 if __name__ == "__main__":
     print("Starting script")
     args = parse_args(None)
-    main(args)
+    try:
+        main(args)
+    except Exception as e:
+        logger.exception(f"Training failed with error: {e}")
+        raise

@@ -262,17 +262,17 @@ def build_optimizer(model, trainable_params, args):
     #     for p in model.parameters():
     #         if p.requires_grad:
     #             optimizer[p] = bnb.optim.Adam8bit([p], lr=args.lr, weight_decay=args.weight_decay)
-        # get scheduler dict
-        scheduler_dict = {}
-        for p in model.parameters():
-            if p.requires_grad:
-                scheduler_dict[p] = get_scheculer(
-                    optimizer=optimizer[p],
-                    scheduler_type=args.scheduler,
-                    num_training_steps=args.num_training_steps * 2,
-                    warmup_steps=args.warmup_steps * 2,
-                    min_lr_ratio=args.min_lr_ratio,
-                )
+        # # get scheduler dict
+        # scheduler_dict = {}
+        # for p in model.parameters():
+        #     if p.requires_grad:
+        #         scheduler_dict[p] = get_scheculer(
+        #             optimizer=optimizer[p],
+        #             scheduler_type=args.scheduler,
+        #             num_training_steps=args.num_training_steps * 2,
+        #             warmup_steps=args.warmup_steps * 2,
+        #             min_lr_ratio=args.min_lr_ratio,
+        #         )
         def optimizer_hook(p):
             if p.grad is None:
                 return

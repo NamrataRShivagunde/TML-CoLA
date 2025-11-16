@@ -28,49 +28,49 @@ echo "==========================================================================
 echo "Starting Hyperparameter Tuning on GPU 0: Learning Rate & Warmup Steps"
 echo "==================================================================================="
 
-# ====================
-# TUNING LEARNING RATE
-# ====================
-echo ""
-echo "### Tuning Learning Rate ###"
+# # ====================
+# # TUNING LEARNING RATE
+# # ====================
+# echo ""
+# echo "### Tuning Learning Rate ###"
 
-LR_VALUES=(0.005) # 0.005 not done (0.0001 0.0005 0.005 0.01 0.05)
+# LR_VALUES=(0.005) # 0.005 not done (0.0001 0.0005 0.005 0.01 0.05)
 
-for lr in "${LR_VALUES[@]}"; do
-    echo "-------------------------------------------------------------------"
-    echo "Running with lr=$lr"
-    echo "-------------------------------------------------------------------"
+# for lr in "${LR_VALUES[@]}"; do
+#     echo "-------------------------------------------------------------------"
+#     echo "Running with lr=$lr"
+#     echo "-------------------------------------------------------------------"
     
-    # Calculate decay steps (assuming warmup + stable + decay = total steps)
-    DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - DEFAULT_STABLE))
+#     # Calculate decay steps (assuming warmup + stable + decay = total steps)
+#     DECAY_STEPS=$((NUM_TRAINING_STEPS - DEFAULT_WARMUP - DEFAULT_STABLE))
     
-    RUN_NAME="baseline-60m-wsd-lr${lr}-warm${DEFAULT_WARMUP}-decay${DECAY_STEPS}-stable${DEFAULT_STABLE}"
+#     RUN_NAME="baseline-60m-wsd-lr${lr}-warm${DEFAULT_WARMUP}-decay${DECAY_STEPS}-stable${DEFAULT_STABLE}"
     
-    CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
-        --model_config $MODEL_CONFIG \
-        --model_type $MODEL_TYPE \
-        --lr $lr \
-        --batch_size $BATCH_SIZE \
-        --total_batch_size $TOTAL_BATCH_SIZE \
-        --num_training_steps $NUM_TRAINING_STEPS \
-        --warmup_steps $DEFAULT_WARMUP \
-        --stable_steps $DEFAULT_STABLE \
-        --weight_decay $DEFAULT_WD \
-        --dtype $DTYPE \
-        --eval_every $EVAL_EVERY \
-        --save_every $SAVE_EVERY \
-        --optimizer $OPTIMIZER \
-        --scheduler $SCHEDULER \
-        --run_name $RUN_NAME \
-        --save_dir $SAVE_DIR \
-        --single_gpu || {
-        echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
-        echo "run_name=$RUN_NAME, lr=$lr, warmup_steps=$DEFAULT_WARMUP, stable_steps=$DEFAULT_STABLE, weight_decay=$DEFAULT_WD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
-    }
+#     CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+#         --model_config $MODEL_CONFIG \
+#         --model_type $MODEL_TYPE \
+#         --lr $lr \
+#         --batch_size $BATCH_SIZE \
+#         --total_batch_size $TOTAL_BATCH_SIZE \
+#         --num_training_steps $NUM_TRAINING_STEPS \
+#         --warmup_steps $DEFAULT_WARMUP \
+#         --stable_steps $DEFAULT_STABLE \
+#         --weight_decay $DEFAULT_WD \
+#         --dtype $DTYPE \
+#         --eval_every $EVAL_EVERY \
+#         --save_every $SAVE_EVERY \
+#         --optimizer $OPTIMIZER \
+#         --scheduler $SCHEDULER \
+#         --run_name $RUN_NAME \
+#         --save_dir $SAVE_DIR \
+#         --single_gpu || {
+#         echo "WARNING: Run $RUN_NAME failed or was interrupted! Continuing to next run..."
+#         echo "run_name=$RUN_NAME, lr=$lr, warmup_steps=$DEFAULT_WARMUP, stable_steps=$DEFAULT_STABLE, weight_decay=$DEFAULT_WD, final_eval_loss=FAILED, final_eval_perplexity=FAILED" >> $SAVE_DIR/hp_results.txt
+#     }
     
-    echo "Completed: $RUN_NAME"
-    echo ""
-done
+#     echo "Completed: $RUN_NAME"
+#     echo ""
+# done
 
 
 

@@ -44,7 +44,7 @@ for clip_grad in "${CLIP_GRAD_VALUES[@]}"; do
     
     RUN_NAME="cola-60m-wsd-init-scalept7-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-stable${DEFAULT_STABLE}-decay${DECAY_STEPS}-clipgrad${clip_grad}"
     
-    CUDA_VISIBLE_DEVICES=4 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_type $MODEL_TYPE \
         --model_config $MODEL_CONFIG \
         --lr $DEFAULT_LR \
