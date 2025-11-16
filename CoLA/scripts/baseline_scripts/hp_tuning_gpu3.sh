@@ -81,7 +81,7 @@ echo "==========================================================================
 # ========================
 echo ""
 echo "### Tuning Stable Steps ###"
-STABLE_VALUES=(0 1000 2000 3000 4000) # not done
+STABLE_VALUES=(5000 6000 7000 8000 9000) # not done
 for stable in "${STABLE_VALUES[@]}"; do
     echo "-------------------------------------------------------------------"
     echo "Running with stable_steps=$stable"
@@ -92,7 +92,7 @@ for stable in "${STABLE_VALUES[@]}"; do
     
     RUN_NAME="baseline-60m-wsd-lr${DEFAULT_LR}-warm${DEFAULT_WARMUP}-decay${DECAY_STEPS}-stable${stable}"
     
-    CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_config $MODEL_CONFIG \
         --model_type $MODEL_TYPE \
         --lr $DEFAULT_LR \
