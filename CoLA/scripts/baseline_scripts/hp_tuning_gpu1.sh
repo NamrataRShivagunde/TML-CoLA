@@ -87,7 +87,7 @@ for clip_grad in "${CLIP_GRAD_VALUES[@]}"; do
     
     # Note: If adam_epsilon is not supported, this will use default
     # You may need to add --adam_epsilon argument to main_withwandb.py
-    CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
+    CUDA_VISIBLE_DEVICES=4 torchrun --standalone --nproc_per_node=1 CoLA/main_withwandb.py \
         --model_config $MODEL_CONFIG \
         --model_type $MODEL_TYPE \
         --lr $DEFAULT_LR \
