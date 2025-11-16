@@ -8,7 +8,7 @@ CONFIG_NAME=${CONFIG_NAME:-"colam_1b"}
 LR=${LR:-"0.002"}
 WD=${WD:-"0.01"}
 GC=${GC:-"0.5"}
-BZ=${BZ:-"32"}
+BZ=${BZ:-"16"}
 CONTINUE=${CONTINUE:-"none"}
 if [ "${CONTINUE}" != "none" ]; then
     readonly continue_from_flag="--continue_from=$CONTINUE"

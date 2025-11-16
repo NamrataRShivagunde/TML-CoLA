@@ -1,8 +1,8 @@
 #!/bin/bash
 export CUDA_VISIBLE_DEVICES=5
 scripts=(
-    "bash scripts/baseline_scripts/baseline350m.sh"
-    "bash scripts/baseline_scripts/baseline1b.sh"
+    # "bash scripts/baseline_scripts/baseline350m.sh"
+    # "bash scripts/baseline_scripts/baseline1b.sh"
     "bash scripts/cola_scripts/cola350m.sh"
     "bash scripts/cola_scripts/cola1b.sh"
 )
