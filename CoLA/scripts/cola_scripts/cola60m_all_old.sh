@@ -179,7 +179,7 @@ CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc-per-node=1 main.py \
 
 
 # Cola + WSD + hp tuning
-CUDA_VISIBLE_DEVICES=6 torchrun --standalone --nproc-per-node=1 CoLA/main_withwandb.py \
+CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 CoLA/main_withwandb.py \
     --model_type cola \
     --model_config CoLA/cola_configs/cola_60m.json \
     --lr 0.006 \
