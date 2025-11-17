@@ -179,7 +179,7 @@ CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc-per-node=1 main.py \
 
 
 # Cola + WSD + hp tuning
-CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc-per-node=1 CoLA/main_withwandb.py \
+CUDA_VISIBLE_DEVICES=2 torchrun --standalone --nproc-per-node=1 CoLA/main_withwandb.py \
     --model_type cola \
     --model_config CoLA/cola_configs/cola_60m.json \
     --lr 0.006 \
@@ -195,4 +195,4 @@ CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc-per-node=1 CoLA/main_withwa
     --stable_steps 4000 \
     --save_every 10000 \
     --scheduler warm_stable_decay \
-    --run_name cola-60m-wsd-init0.5-0.7-w2k-st4k-dy4k
+    --run_name cola-60m-wsd-init0.8-0.4-w2k-st4k-dy4k
