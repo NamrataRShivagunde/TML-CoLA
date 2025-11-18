@@ -195,4 +195,4 @@ CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 CoLA/main_withwa
     --stable_steps 4000 \
     --save_every 10000 \
     --scheduler warm_stable_decay \
-    --run_name cola-60m-wsd-init0.5-1-w2k-st4k-dy4k
+    --run_name cola-60m-wsd-init0.7-1-w2k-st4k-dy4k

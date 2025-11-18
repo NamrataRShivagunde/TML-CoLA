@@ -23,11 +23,11 @@ Notes:
 import os
 import argparse
 #from tqdm import tqdm
-from datasets import load_dataset, Dataset, DatasetDict
+from datasets import load_dataset, Dataset, DatasetDict, Features, Sequence, Value
 from transformers import AutoTokenizer
 
 
-def gather_examples(streaming_split, tokenizer, max_length, target_tokens, batch_texts_size=512):
+def gather_examples(streaming_split, tokenizer, max_length, target_tokens, batch_texts_size):
     """Stream a split from C4, tokenize in batches and collect tokenized examples until target_tokens reached.
 
     Returns a list of tokenized dicts: {"input_ids": [...], "attention_mask": [...]}
@@ -38,6 +38,9 @@ def gather_examples(streaming_split, tokenizer, max_length, target_tokens, batch
     total_tokens = 0
 
     stream = load_dataset("allenai/c4", "en", split=streaming_split, streaming=True)
+    # Shuffle the stream with a fixed seed
+    print(f"Shuffling {streaming_split} split with seed 42")
+    stream = stream.shuffle(seed=42)
 
     batch_texts = []
     #pbar = tqdm(unit="examples", desc=f"Collecting from {streaming_split}")
@@ -67,24 +70,6 @@ def gather_examples(streaming_split, tokenizer, max_length, target_tokens, batch
                 if total_tokens >= target_tokens:
                     break
             batch_texts = []
-            if total_tokens >= target_tokens:
-                break
-
-    # Process remaining batch_texts if still under target
-    if total_tokens < target_tokens and len(batch_texts) > 0:
-        tok = tokenizer(
-            batch_texts,
-            truncation=True,
-            padding="max_length",
-            max_length=max_length,
-            return_attention_mask=True,
-        )
-        for ids, att in zip(tok["input_ids"], tok["attention_mask"]):
-            non_pad = sum(1 for _id in ids if _id != pad_id)
-            total_tokens += non_pad
-            input_ids_list.append(list(ids))
-            attention_mask_list.append(list(att))
-            #pbar.update(1)
             if total_tokens >= target_tokens:
                 break
 
@@ -137,8 +122,12 @@ def main():
     print(f"Collected {val_tokens} non-pad tokens for validation and {len(val_dict['input_ids'])} examples")
 
     print("Building datasets and saving to disk...")
-    train_ds = Dataset.from_dict(train_dict)
-    val_ds = Dataset.from_dict(val_dict)
+    features = Features({
+        "input_ids": Sequence(Value("int32")),
+        "attention_mask": Sequence(Value("int8"))
+    })
+    train_ds = Dataset.from_dict(train_dict, features=features)
+    val_ds = Dataset.from_dict(val_dict, features=features)
     ds_dict = DatasetDict({"train": train_ds, "validation": val_ds})
 
     ds_dict.save_to_disk(args.output_dir)

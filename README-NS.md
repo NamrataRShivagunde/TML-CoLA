@@ -5,18 +5,18 @@ conda create --name=tml-cola python=3.11
 
 pip install -r requirements.txt
 
-If datasets is not downloaded, go to download dataset section.
+
 
 ## Baseline
-To run baseline, specify model config at e.g. CoLA/baseline_configs/llama_60m.json, 
+To run baseline, specify model config at CoLA/baseline_configs/llama_60m.json, 
 
-Set hyperparameters by checking CoLA/main.py args and then run
+Set hyperparameters by checking CoLA/main.py args and then
 
 torchrun --standalone --nproc_per_node 1 CoLA/main.py \
     --model_config CoLA/baseline_configs/llama_60m.json \
     --model_type llama \
     --lr 0.001 \
-    --batch_size 256 \
+    --batch_size 128 \
     --total_batch_size 512 \
     --num_training_steps 10000 \
     --warmup_steps 1000 \
@@ -27,34 +27,24 @@ torchrun --standalone --nproc_per_node 1 CoLA/main.py \
     --run_name baseline-60m-cosine \
     --scheduler cosine \
     --offline_mode \
-    --offline_data_path datasets/c4/tokenized \
+    --offline_data_path datasets-3.0.0/c4/tokenized \
     --tensorboard
 
 
 ## Cola
 
 
-To run Cola, specify model config at  e,g. CoLA/cola_configs/cola_60m.json, 
+To run Cola, specify model config at CoLA/cola_configs/cola_60m.json, 
 
-Set hyperparameters by checking CoLA/main.py args and then run
+Set hyperparameters by checking CoLA/main.py args and then
 
-    CUDA_VISIBLE_DEVICES=0 torchrun --standalone --nproc-per-node=1 CoLA/main.py \
-    --model_type cola \
-    --model_config CoLA/cola_configs/cola_60m.json \
-    --lr 0.006 \
-    --optimizer adamw \
-    --batch_size 256 \
-    --total_batch_size 512 \
-    --num_training_steps 10000 \
-    --warmup_steps 2000 \
-    --weight_decay 0.01 \
-    --dtype bfloat16 \
-    --eval_every 1000 \
-    --grad_clipping 0.5 \
-    --run_name cola-60m-cosine
+    cd CoLA
 
 
-## To download data 
+     bash scripts/cola_scripts/cola60m_offline.sh
+
+
+## to download data first, 
     refer scripts/DOWNLOAD_C4_INSTRUCTIONS.md and follow instructions
 
 ```bash

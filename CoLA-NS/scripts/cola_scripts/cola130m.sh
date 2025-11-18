@@ -4,8 +4,8 @@ NGPU="${#array[@]}"
 PORT=$(($RANDOM + 10000))
 
 RUN_NAME=${RUN_NAME:-"None"}
-CONFIG_NAME=${CONFIG_NAME:-"cola_60m"}
-LR=${LR:-"0.006"}
+CONFIG_NAME=${CONFIG_NAME:-"cola_130m"}
+LR=${LR:-"0.003"}
 WD=${WD:-"0.01"}
 GC=${GC:-"0.5"}
 BZ=${BZ:-"256"}
@@ -21,8 +21,8 @@ TAG=${TAG:-"none"}
 if [ "${TAG}" != "none" ]; then
     RUN_NAME=$TAG-$RUN_NAME
 fi
-STEPS=${STEPS:-"10000"}
-if [ "${STEPS}" != "10000" ]; then
+STEPS=${STEPS:-"20000"}
+if [ "${STEPS}" != "20000" ]; then
     RUN_NAME=$RUN_NAME-STEPS-$STEPS
 fi
 WU=${WU:-"2000"}
@@ -44,4 +44,6 @@ CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --mast
     --eval_every 1000 \
     --grad_clipping $GC \
     --run_name $RUN_NAME \
+    --wandb_project cola-130m \
+    $continue_from_flag \
     > /results/cola/$RUN_NAME.log 2>&1 &
