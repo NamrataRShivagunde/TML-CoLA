@@ -291,19 +291,44 @@ def main(args):
                 world_size=world_size,
             )
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        "t5-base", model_max_length=args.max_length
-    )
-
-    def preprocess_batched(batch):
-        batch = tokenizer(
-            batch["text"],
-            max_length=args.max_length,
-            truncation=True,
-            padding="max_length",
-            return_tensors="pt",
+    if args.offline_mode:
+        tokenizer = None
+        preprocess_batched = None
+        #pad_idx = args.pad_id
+        pad_idx = 0
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(
+            "t5-base", model_max_length=args.max_length
         )
-        return batch
+
+        def preprocess_batched(batch):
+            batch = tokenizer(
+                batch["text"],
+                max_length=args.max_length,
+                truncation=True,
+                padding="max_length",
+                return_tensors="pt",
+            )
+            return batch
+
+        pad_idx = tokenizer.pad_token_id
+
+
+    # make this conditional
+    # tokenizer = AutoTokenizer.from_pretrained(
+    #     "t5-base", model_max_length=args.max_length
+    # )
+
+    # def preprocess_batched(batch):
+    #     batch = tokenizer(
+    #         batch["text"],
+    #         max_length=args.max_length,
+    #         truncation=True,
+    #         padding="max_length",
+    #         return_tensors="pt",
+    #     )
+    #     return batch
+
 
     if args.offline_mode:
         train_dataloader = torch.utils.data.DataLoader(
@@ -501,7 +526,7 @@ def main(args):
         return model.module if hasattr(model, 'module') else model
 
     # global steps and others are defined above
-    pad_idx = tokenizer.pad_token_id
+    #pad_idx = tokenizer.pad_token_id # set earlier for if not in offline mode
     update_time = time.time()
     local_step = 0  # when continue_from is used, local_step != global_step
 
