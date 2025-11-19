@@ -110,3 +110,24 @@ CUDA_VISIBLE_DEVICES=4 torchrun --standalone --nproc-per-node=1 CoLA/main_withwa
     --save_every 30000 \
     --scheduler warm_stable_decay \
     --stable_steps 3000
+
+
+# offline mode test
+
+torchrun --standalone --nproc_per_node 1 CoLA/main.py \
+    --model_config CoLA/baseline_configs/llama_60m.json \
+    --model_type llama \
+    --lr 0.001 \
+    --batch_size 128 \
+    --total_batch_size 512 \
+    --num_training_steps 10000 \
+    --warmup_steps 1000 \
+    --weight_decay 0 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --optimizer adamw \
+    --run_name baseline-60m-cosine \
+    --scheduler cosine \
+    --offline_mode \
+    --offline_data_path datasets/c4/tokenized \
+    --tensorboard
