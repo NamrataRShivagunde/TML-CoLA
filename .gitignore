@@ -5,6 +5,7 @@ __pycache__/
 
 # TensorBoard logs
 tensorboard_logs/
+datasets
 
 # Logs
 logs/
