@@ -300,14 +300,14 @@ def main(args):
             batch_size=args.batch_size,
             num_workers=args.workers,
             collate_fn=default_data_collator,
-            shuffle=True,
+            shuffle=False,
         )
         eval_dataloader = torch.utils.data.DataLoader(
             eval_data,
             batch_size=args.batch_size,
             num_workers=args.workers,
             collate_fn=default_data_collator,
-            shuffle=True,
+            shuffle=False,
         )
     else:
         # it doesn't matter which tokenizer we use, because we train from scratch
