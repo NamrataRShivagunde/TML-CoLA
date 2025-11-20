@@ -535,6 +535,29 @@ def main(args):
             ]
         )
 
+        # Print dtypes after first optimizer step
+        print("Step 1: Dtype info")
+        # Grad dtype
+        for name, p in model.named_parameters():
+            if p.grad is not None:
+                print(f"Grad dtype for {name}: {p.grad.dtype}")
+                break
+        # Optimizer state dtype
+        for k, v in optimizer.state_dict()['state'].items():
+            for state_name, state_val in v.items():
+                if hasattr(state_val, 'dtype'):
+                    print(f"Optimizer state '{state_name}' dtype: {state_val.dtype}")
+                    break
+            break
+        # Model param dtype
+        for name, p in model.named_parameters():
+            print(f"Model param dtype for {name}: {p.dtype}")
+            break
+
+        # Break after step 1
+        print("Breaking after step 1 for dtype inspection.")
+        break
+
         if global_rank == 0:
             pbar.update(1)
 
