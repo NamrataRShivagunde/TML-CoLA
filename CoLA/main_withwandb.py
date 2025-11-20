@@ -250,7 +250,7 @@ def main(args):
 
     if args.offline_mode:
         logger.info("Loading tokenized data from disk")
-        data = datasets.load_from_disk("/datasets/c4/tokenized")
+        data = datasets.load_from_disk("datasets-2B/c4/tokenized")
         logger.info("Finished loading from disk")
     else:
         data = datasets.load_dataset("allenai/c4", "en", split="train", streaming=True)

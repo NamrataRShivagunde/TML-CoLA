@@ -114,7 +114,7 @@ CUDA_VISIBLE_DEVICES=4 torchrun --standalone --nproc-per-node=1 CoLA/main_withwa
 
 # offline mode test
 
-CUDA_VISIBLE_DEVICES=6 torchrun --standalone --nproc_per_node 1 CoLA/main_withwandb.py \
+CUDA_VISIBLE_DEVICES=4 torchrun --standalone --nproc_per_node 1 CoLA/main_withwandb.py \
     --model_config CoLA/baseline_configs/llama_60m.json \
     --model_type llama \
     --lr 0.001 \
@@ -126,7 +126,7 @@ CUDA_VISIBLE_DEVICES=6 torchrun --standalone --nproc_per_node 1 CoLA/main_withwa
     --dtype bfloat16 \
     --eval_every 1000 \
     --optimizer adamw \
-    --run_name baseline-60m-cosine-offlinemode-mbs128-v2 \
+    --run_name baseline-60m-cosine-offlinemode-mbs128-v3 \
     --scheduler cosine \
     --offline_mode \
     --offline_data_path datasets-2B/c4/tokenized 
@@ -145,7 +145,7 @@ CUDA_VISIBLE_DEVICES=7 torchrun --standalone --nproc-per-node=1 CoLA/main_withwa
     --dtype bfloat16 \
     --eval_every 1000 \
     --grad_clipping 0.5 \
-    --run_name cola-60m-cosine-offlinemode-mbs128-v2 \
+    --run_name cola-60m-cosine-offlinemode-mbs128-v4-og \
     --scheduler cosine \
     --offline_mode \
     --offline_data_path datasets-2B/c4/tokenized 
@@ -165,7 +165,7 @@ CUDA_VISIBLE_DEVICES=3 torchrun --standalone --nproc_per_node 1 CoLA/main_withwa
     --dtype bfloat16 \
     --eval_every 1000 \
     --optimizer adamw \
-    --run_name baseline-60m-cosine-onlinemode-mbs128-v2 \
+    --run_name baseline-60m-cosine-onlinemode-mbs128-v4-og \
     --scheduler cosine 
 
 
@@ -182,5 +182,5 @@ CUDA_VISIBLE_DEVICES=5 torchrun --standalone --nproc-per-node=1 CoLA/main_withwa
     --dtype bfloat16 \
     --eval_every 1000 \
     --grad_clipping 0.5 \
-    --run_name cola-60m-cosine-onlinemode-mbs128-v2 \
+    --run_name cola-60m-cosine-onlinemode-mbs128-v4-og \
     --scheduler cosine
