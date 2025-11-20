@@ -543,31 +543,34 @@ def main(args):
             scheduler.step()
             optimizer.zero_grad()
 
-        update_step += 1
-        update_time = time.time() - update_time
-
         # Print dtypes after first optimizer step
-        print("Step 1: Dtype info")
-        # Grad dtype
-        for name, p in model.named_parameters():
-            if p.grad is not None:
-                print(f"Grad dtype for {name}: {p.grad.dtype}")
-                break
-        # Optimizer state dtype
-        for k, v in optimizer.state_dict()['state'].items():
-            for state_name, state_val in v.items():
-                if hasattr(state_val, 'dtype'):
-                    print(f"Optimizer state '{state_name}' dtype: {state_val.dtype}")
+        if update_step == 1 and global_rank == 0:
+            print("\n=== Step 1: Dtype Info ===")
+            count = 0
+            for name, p in model.named_parameters():
+                if count >= 3:
                     break
-            break
-        # Model param dtype
-        for name, p in model.named_parameters():
-            print(f"Model param dtype for {name}: {p.dtype}")
-            break
+                print(f"\nParam: {name}")
+                print(f"  Weight dtype: {p.dtype}")
+                if p.grad is not None:
+                    print(f"  Grad dtype: {p.grad.dtype}")
+                count += 1
+            
+            opt_state = optimizer.state_dict()['state']
+            print(f"\nOptimizer has {len(opt_state)} parameter states")
+            count = 0
+            for param_id, state in opt_state.items():
+                if count >= 3:
+                    break
+                print(f"\nOptimizer state for param_id {param_id}:")
+                for state_name, state_val in state.items():
+                    if isinstance(state_val, torch.Tensor):
+                        print(f"  {state_name}: {state_val.dtype}")
+                count += 1
+            print("=========================\n")
 
-        # Break after step 1
-        print("Breaking after step 1 for dtype inspection.")
-        break
+        update_step += 1
+        # ...existing code...
 
         # save checkpoint by save_every
         if (
