@@ -550,7 +550,7 @@ def main(args):
             for name, p in model.named_parameters():
                 print(f"\nParam: {name}")
                 print(f"  Weight dtype: {p.dtype}")
-                if p.grad is not None:
+                if p.grad:
                     print(f"  Grad dtype: {p.grad.dtype}")
                 count += 1
             
