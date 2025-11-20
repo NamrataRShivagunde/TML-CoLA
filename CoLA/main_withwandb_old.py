@@ -51,9 +51,10 @@ def parse_args(args):
         "--model_type", type=str, default="cola", choices=["cola", "cola_m", "llama"]
     )
     parser.add_argument("--run_name", type=str, default=None)
-    parser.add_argument("--wandb_project", type=str, default="cola")
+    parser.add_argument("--wandb_project", type=str, default="TML-CoLA")
     parser.add_argument("--model_config", type=str, required=True)
     parser.add_argument("--offline_mode", default=False, action="store_true")
+    parser.add_argument("--offline_data_path", type=str, default="datasets/c4/tokenized", help="Path to offline tokenized dataset")
     parser.add_argument("--continue_from", type=str, default=None)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--gradient_accumulation", type=int, default=None)
@@ -64,13 +65,14 @@ def parse_args(args):
     parser.add_argument(
         "--scheduler",
         type=str,
-        default="cosine",
-        choices=["linear", "cosine", "cosine_restarts"],
+        default="warm_stable_decay",
+        choices=["linear", "cosine", "cosine_restarts", "warm_stable_decay"],
     )
     parser.add_argument("--min_lr_ratio", type=float, default=0.1)
     parser.add_argument("--activation_checkpointing", action="store_true")
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--warmup_steps", type=int, default=1_000)
+    parser.add_argument("--stable_steps", type=int, default=5000)
     parser.add_argument("--eval_every", type=int, default=5_000)
     parser.add_argument(
         "--num_training_steps",
@@ -86,7 +88,7 @@ def parse_args(args):
         help="Number of tokens to train on. Overwrites num_training_steps. "
         "You can use M and B suffixes, e.g. 100M or 1B.",
     )
-    parser.add_argument("--save_every", type=int, default=10_000)
+    parser.add_argument("--save_every", type=int, default=20000)
     parser.add_argument("--save_dir", type=str, default=None)
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument(
@@ -235,7 +237,7 @@ def main(args):
         model_name = args.model_config.split("/")[1]
         model_name = model_name.split(".")[0]
         run_name = (
-            f"{model_name}-{args.peft_model}"
+            f"{model_name}"
             if args.run_name is None
             else args.run_name
         )
@@ -249,8 +251,8 @@ def main(args):
     logger.info("*" * 40)
 
     if args.offline_mode:
-        logger.info("Loading tokenized data from disk")
-        data = datasets.load_from_disk("/datasets/c4/tokenized")
+        logger.info(f"Loading tokenized data from disk: {args.offline_data_path}")
+        data = datasets.load_from_disk(args.offline_data_path)
         logger.info("Finished loading from disk")
     else:
         data = datasets.load_dataset("allenai/c4", "en", split="train", streaming=True)
@@ -259,21 +261,23 @@ def main(args):
         logger.info(f"Shuffling data with seed {seed_for_shuffle}")
         data: datasets.Dataset = data.shuffle(seed=seed_for_shuffle)
 
-    if not args.single_gpu:
-        if args.offline_mode:
-            train_data: datasets.Dataset = data["train"]
+    if args.offline_mode:
+        train_data: datasets.Dataset = data["train"]
+        eval_data = data["validation"]
+        
+        if not args.single_gpu:
             train_data = datasets.distributed.split_dataset_by_node(
                 train_data,
                 rank=global_rank,
                 world_size=world_size,
             )
-            eval_data = data["validation"]
             eval_data = datasets.distributed.split_dataset_by_node(
                 eval_data,
                 rank=global_rank,
                 world_size=world_size,
             )
-        else:
+    else:
+        if not args.single_gpu:
             data = datasets.distributed.split_dataset_by_node(
                 data,
                 rank=global_rank,
@@ -396,6 +400,7 @@ def main(args):
             scheduler_type=args.scheduler,
             num_training_steps=args.num_training_steps,
             warmup_steps=args.warmup_steps,
+            stable_steps=args.stable_steps,
             min_lr_ratio=args.min_lr_ratio,
         )
 
@@ -480,6 +485,10 @@ def main(args):
             broadcast_buffers=False,
         )
 
+    # Helper function to get the underlying model (unwrapped from DDP if needed)
+    def get_model_for_saving():
+        return model.module if hasattr(model, 'module') else model
+
     # global steps and others are defined above
     pad_idx = tokenizer.pad_token_id
     update_time = time.time()
@@ -557,7 +566,7 @@ def main(args):
                 f"Saving model and optimizer to {current_model_directory}, update step {update_step}"
             )
             os.makedirs(args.save_dir, exist_ok=True)
-            model.module.save_pretrained(
+            get_model_for_saving().save_pretrained(
                 current_model_directory, max_shard_size="100GB"
             )
 
@@ -582,7 +591,7 @@ def main(args):
             with open(f"{current_model_directory}/training_state.json", "w") as f:
                 json.dump(training_state_checkpoint, f, indent=4)
 
-            # save wandb related info
+            # # save wandb related info
             wandb_info = {
                 "wandb_id": wandb.run.id,
             }
@@ -660,7 +669,7 @@ def main(args):
         )
         os.makedirs(args.save_dir, exist_ok=True)
 
-        model.module.save_pretrained(current_model_directory)
+        get_model_for_saving().save_pretrained(current_model_directory)
 
         optimizer_checkpoint = {
             "optimizer": optimizer.state_dict(),
@@ -715,6 +724,14 @@ def main(args):
         logger.info(
             f"Eval loss and perplexity at step {update_step}: {total_loss}, {np.exp(total_loss)}"
         )
+        
+        # Log hyperparameters and final eval loss to file
+        results_file = os.path.join(args.save_dir if args.save_dir else ".", "hp_results.txt")
+        os.makedirs(os.path.dirname(results_file) if os.path.dirname(results_file) else ".", exist_ok=True)
+        with open(results_file, "a") as f:
+            f.write(f"run_name={args.run_name}, lr={args.lr}, warmup_steps={args.warmup_steps}, "
+                   f"stable_steps={args.stable_steps}, weight_decay={args.weight_decay}, "
+                   f"final_eval_loss={total_loss:.4f}, final_eval_perplexity={np.exp(total_loss):.4f}\n")
 
     logger.info("Script finished successfully")
     print(f"Rank {global_rank} finished successfully")
