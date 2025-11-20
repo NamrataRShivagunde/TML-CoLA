@@ -126,7 +126,7 @@ CUDA_VISIBLE_DEVICES=4 torchrun --standalone --nproc_per_node 1 CoLA/main_withwa
     --dtype bfloat16 \
     --eval_every 1000 \
     --optimizer adamw \
-    --run_name baseline-60m-cosine-offlinemode-mbs128-v3 \
+    --run_name baseline-60m-cosine-offlinemode-mbs128-v4-og \
     --scheduler cosine \
     --offline_mode \
     --offline_data_path datasets-2B/c4/tokenized 
