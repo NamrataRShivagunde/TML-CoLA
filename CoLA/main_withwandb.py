@@ -548,8 +548,6 @@ def main(args):
             print("\n=== Step 1: Dtype Info ===")
             count = 0
             for name, p in model.named_parameters():
-                if count >= 3:
-                    break
                 print(f"\nParam: {name}")
                 print(f"  Weight dtype: {p.dtype}")
                 if p.grad is not None:
