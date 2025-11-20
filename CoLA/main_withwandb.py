@@ -543,31 +543,6 @@ def main(args):
         if not layer_wise_flag:
             optimizer.step()
             scheduler.step()
-                # Print dtypes after first optimizer step (before zero_grad)
-            if update_step == 0 and global_rank == 0:
-                print("\n=== Step 1: Dtype Info ===")
-                count = 0
-                for name, p in model.named_parameters():
-                    if count >= 3:
-                        break
-                    print(f"\nParam: {name}")
-                    print(f"  Weight dtype: {p.dtype}")
-                    if p.grad is not None:
-                        print(f"  Grad dtype: {p.grad.dtype}")
-                    count += 1
-                
-                opt_state = optimizer.state_dict()['state']
-                print(f"\nOptimizer has {len(opt_state)} parameter states")
-                count = 0
-                for param_id, state in opt_state.items():
-                    if count >= 3:
-                        break
-                    print(f"\nOptimizer state for param_id {param_id}:")
-                    for state_name, state_val in state.items():
-                        if isinstance(state_val, torch.Tensor):
-                            print(f"  {state_name}: {state_val.dtype}")
-                    count += 1
-                print("=========================\n")
             optimizer.zero_grad()
 
         update_step += 1
