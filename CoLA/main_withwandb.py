@@ -535,6 +535,17 @@ def main(args):
             ]
         )
 
+        if global_rank == 0:
+            pbar.update(1)
+
+        if not layer_wise_flag:
+            optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad()
+
+        update_step += 1
+        update_time = time.time() - update_time
+
         # Print dtypes after first optimizer step
         print("Step 1: Dtype info")
         # Grad dtype
@@ -557,17 +568,6 @@ def main(args):
         # Break after step 1
         print("Breaking after step 1 for dtype inspection.")
         break
-
-        if global_rank == 0:
-            pbar.update(1)
-
-        if not layer_wise_flag:
-            optimizer.step()
-            scheduler.step()
-            optimizer.zero_grad()
-
-        update_step += 1
-        update_time = time.time() - update_time
 
         # save checkpoint by save_every
         if (
