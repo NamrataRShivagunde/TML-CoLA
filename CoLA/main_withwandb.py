@@ -250,7 +250,7 @@ def main(args):
 
     if args.offline_mode:
         logger.info("Loading tokenized data from disk")
-        data = datasets.load_from_disk("datasets-2B/c4/tokenized")
+        data = datasets.load_from_disk("datasets-1pt5B/c4/tokenized")
         logger.info("Finished loading from disk")
     else:
         data = datasets.load_dataset("allenai/c4", "en", split="train", streaming=True)
@@ -300,14 +300,14 @@ def main(args):
             batch_size=args.batch_size,
             num_workers=args.workers,
             collate_fn=default_data_collator,
-            shuffle=False,
+            shuffle=True,
         )
         eval_dataloader = torch.utils.data.DataLoader(
             eval_data,
             batch_size=args.batch_size,
             num_workers=args.workers,
             collate_fn=default_data_collator,
-            shuffle=False,
+            shuffle=True,
         )
     else:
         # it doesn't matter which tokenizer we use, because we train from scratch
