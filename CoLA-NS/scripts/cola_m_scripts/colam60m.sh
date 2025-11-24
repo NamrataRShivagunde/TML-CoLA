@@ -4,7 +4,7 @@ NGPU="${#array[@]}"
 PORT=$(($RANDOM + 10000))
 
 RUN_NAME=${RUN_NAME:-"None"}
-CONFIG_NAME=${CONFIG_NAME:-"cola_60m"}
+CONFIG_NAME=${CONFIG_NAME:-"colam_60m"}
 LR=${LR:-"0.006"}
 WD=${WD:-"0.01"}
 GC=${GC:-"0.5"}
@@ -31,7 +31,7 @@ if [ "${WU}" != "2000" ]; then
 fi
 
 CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --master-port=$PORT main.py \
-    --model_type cola \
+    --model_type cola_m \
     --model_config cola_configs/$CONFIG_NAME.json \
     --lr $LR \
     --optimizer adamw \

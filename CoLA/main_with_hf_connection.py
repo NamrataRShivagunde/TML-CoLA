@@ -16,9 +16,10 @@ from transformers import LlamaForCausalLM
 from transformers import default_data_collator
 import datasets
 import datasets.distributed
-import wandb
+#import wandb
 from tqdm import tqdm
 from loguru import logger
+from torch.utils.tensorboard import SummaryWriter
 from pretraining_utils import training_utils, args_utils
 from pretraining_utils.dataloader import PreprocessedIterableDataset
 from cola import ColaConfig, ColaForCausalLM, ColaMForCausalLM
@@ -54,6 +55,7 @@ def parse_args(args):
     parser.add_argument("--wandb_project", type=str, default="TML-CoLA")
     parser.add_argument("--model_config", type=str, required=True)
     parser.add_argument("--offline_mode", default=False, action="store_true")
+    parser.add_argument("--offline_data_path", type=str, default="datasets/c4/tokenized", help="Path to offline tokenized dataset")
     parser.add_argument("--continue_from", type=str, default=None)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--gradient_accumulation", type=int, default=None)
@@ -64,13 +66,14 @@ def parse_args(args):
     parser.add_argument(
         "--scheduler",
         type=str,
-        default="cosine",
-        choices=["linear", "cosine", "cosine_restarts"],
+        default="warm_stable_decay",
+        choices=["linear", "cosine", "cosine_restarts", "warm_stable_decay"],
     )
     parser.add_argument("--min_lr_ratio", type=float, default=0.1)
     parser.add_argument("--activation_checkpointing", action="store_true")
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--warmup_steps", type=int, default=1_000)
+    parser.add_argument("--stable_steps", type=int, default=5000)
     parser.add_argument("--eval_every", type=int, default=5_000)
     parser.add_argument(
         "--num_training_steps",
@@ -86,7 +89,7 @@ def parse_args(args):
         help="Number of tokens to train on. Overwrites num_training_steps. "
         "You can use M and B suffixes, e.g. 100M or 1B.",
     )
-    parser.add_argument("--save_every", type=int, default=10_000)
+    parser.add_argument("--save_every", type=int, default=20000)
     parser.add_argument("--save_dir", type=str, default=None)
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument(
@@ -102,6 +105,8 @@ def parse_args(args):
     parser.add_argument("--beta1", type=float, default=0.0)
     # disable ddp, single_gpu
     parser.add_argument("--single_gpu", default=False, action="store_true")
+    # tensorboard logging
+    parser.add_argument("--tensorboard", default=False, action="store_true")
 
     args = parser.parse_args(args)
 
@@ -235,11 +240,15 @@ def main(args):
         model_name = args.model_config.split("/")[1]
         model_name = model_name.split(".")[0]
         run_name = (
-            f"{model_name}-{args.peft_model}"
+            f"{model_name}"
             if args.run_name is None
             else args.run_name
         )
-        wandb.init(project=args.wandb_project, name=run_name)
+        #wandb.init(project=args.wandb_project, name=run_name)
+        
+        # Add file logger
+        os.makedirs("logs", exist_ok=True)
+        logger.add(f"logs/{run_name}.txt", format="{time} {level} {message}")
 
     logger.info(f"Using dist with rank {global_rank} (only rank 0 will log)")
     logger.info("*" * 40)
@@ -249,8 +258,8 @@ def main(args):
     logger.info("*" * 40)
 
     if args.offline_mode:
-        logger.info("Loading tokenized data from disk")
-        data = datasets.load_from_disk("datasets-1pt5B/c4/tokenizer")
+        logger.info(f"Loading tokenized data from disk: {args.offline_data_path}")
+        data = datasets.load_from_disk(args.offline_data_path)
         logger.info("Finished loading from disk")
     else:
         data = datasets.load_dataset("allenai/c4", "en", split="train", streaming=True)
@@ -259,30 +268,32 @@ def main(args):
         logger.info(f"Shuffling data with seed {seed_for_shuffle}")
         data: datasets.Dataset = data.shuffle(seed=seed_for_shuffle)
 
-    if not args.single_gpu:
-        if args.offline_mode:
-            train_data: datasets.Dataset = data["train"]
+    if args.offline_mode:
+        train_data: datasets.Dataset = data["train"]
+        eval_data = data["validation"]
+        
+        if not args.single_gpu:
             train_data = datasets.distributed.split_dataset_by_node(
                 train_data,
                 rank=global_rank,
                 world_size=world_size,
             )
-            eval_data = data["validation"]
             eval_data = datasets.distributed.split_dataset_by_node(
                 eval_data,
                 rank=global_rank,
                 world_size=world_size,
             )
-        else:
+    else:
+        if not args.single_gpu:
             data = datasets.distributed.split_dataset_by_node(
                 data,
                 rank=global_rank,
                 world_size=world_size,
             )
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        "t5-base", model_max_length=args.max_length
-    )
+#    tokenizer = AutoTokenizer.from_pretrained(
+#        "t5-base", model_max_length=args.max_length
+#    )
 
     def preprocess_batched(batch):
         batch = tokenizer(
@@ -396,6 +407,7 @@ def main(args):
             scheduler_type=args.scheduler,
             num_training_steps=args.num_training_steps,
             warmup_steps=args.warmup_steps,
+            stable_steps=args.stable_steps,
             min_lr_ratio=args.min_lr_ratio,
         )
 
@@ -466,11 +478,15 @@ def main(args):
     )
 
     if global_rank == 0:
-        wandb.config.update(run_config, allow_val_change=True)
-        wandb.save(os.path.abspath(__file__), policy="now")  # save current script
+        # wandb.config.update(run_config, allow_val_change=True)
+        # wandb.save(os.path.abspath(__file__), policy="now")  # save current script
         pbar = tqdm(
             total=args.num_training_steps - update_step, desc="Update steps", ncols=80
         )
+        if args.tensorboard:
+            tb_writer = SummaryWriter(log_dir=f"tensorboard_logs/{run_name}")
+        else:
+            tb_writer = None
 
     if not args.single_gpu:
         model = torch.nn.parallel.DistributedDataParallel(
@@ -479,6 +495,10 @@ def main(args):
             output_device=local_rank,
             broadcast_buffers=False,
         )
+
+    # Helper function to get the underlying model (unwrapped from DDP if needed)
+    def get_model_for_saving():
+        return model.module if hasattr(model, 'module') else model
 
     # global steps and others are defined above
     pad_idx = tokenizer.pad_token_id
@@ -538,8 +558,6 @@ def main(args):
         if global_rank == 0:
             pbar.update(1)
 
-    
-
         if not layer_wise_flag:
             optimizer.step()
             scheduler.step()
@@ -559,7 +577,7 @@ def main(args):
                 f"Saving model and optimizer to {current_model_directory}, update step {update_step}"
             )
             os.makedirs(args.save_dir, exist_ok=True)
-            model.module.save_pretrained(
+            get_model_for_saving().save_pretrained(
                 current_model_directory, max_shard_size="100GB"
             )
 
@@ -569,7 +587,7 @@ def main(args):
                 "update_step": update_step,
                 "global_step": global_step,
                 "config": run_config,
-                "wandb": wandb.run.dir,
+                #"wandb": wandb.run.dir,
                 "dtype": args.dtype,
             }
             torch.save(optimizer_checkpoint, f"{current_model_directory}/optimizer.pt")
@@ -584,12 +602,12 @@ def main(args):
             with open(f"{current_model_directory}/training_state.json", "w") as f:
                 json.dump(training_state_checkpoint, f, indent=4)
 
-            # save wandb related info
-            wandb_info = {
-                "wandb_id": wandb.run.id,
-            }
-            with open(f"{args.save_dir}/wandb.json", "w") as f:
-                json.dump(wandb_info, f, indent=4)
+            # # save wandb related info
+            # wandb_info = {
+            #     "wandb_id": wandb.run.id,
+            # }
+            # with open(f"{args.save_dir}/wandb.json", "w") as f:
+            #     json.dump(wandb_info, f, indent=4)
 
         # evaluation
         if update_step % args.eval_every == 0:
@@ -605,18 +623,22 @@ def main(args):
                 args.batch_size,
                 eval_dataloader,
             )
-            if global_rank == 0:
-                wandb.log(
-                    {
-                        "final_eval_loss": total_loss,
-                        "final_eval_perplexity": np.exp(total_loss),
-                        "final_eval_tokens": evaluated_on_tokens,
-                    },
-                    step=global_step,
-                )
+            # if global_rank == 0:
+            #     wandb.log(
+            #         {
+            #             "final_eval_loss": total_loss,
+            #             "final_eval_perplexity": np.exp(total_loss),
+            #             "final_eval_tokens": evaluated_on_tokens,
+            #         },
+            #         step=global_step,
+            #     )
             logger.info(
                 f"Eval loss and perplexity at step {update_step}: {total_loss}, {np.exp(total_loss)}"
             )
+            if global_rank == 0 and tb_writer is not None:
+                tb_writer.add_scalar("final_eval_loss", total_loss, global_step)
+                tb_writer.add_scalar("final_eval_perplexity", np.exp(total_loss), global_step)
+                tb_writer.add_scalar("final_eval_tokens", evaluated_on_tokens, global_step)
             model.train()
 
         if not layer_wise_flag:
@@ -631,20 +653,30 @@ def main(args):
         torch.cuda.reset_peak_memory_stats()
 
         if global_rank == 0:
-            wandb.log(
-                {
-                    "loss": loss.item(),
-                    "lr": lr,
-                    "update_step": update_step,
-                    "tokens_seen": tokens_seen,
-                    "throughput_tokens": tokens_in_update / update_time,
-                    "throughput_examples": args.total_batch_size / update_time,
-                    "throughput_batches": batches_in_update / update_time,
-                    "gradnorm": grad_norm,
-                    "max_memory": max_memory,
-                },
-                step=global_step,
-            )
+            # wandb.log(
+            #     {
+            #         "loss": loss.item(),
+            #         "lr": lr,
+            #         "update_step": update_step,
+            #         "tokens_seen": tokens_seen,
+            #         "throughput_tokens": tokens_in_update / update_time,
+            #         "throughput_examples": args.total_batch_size / update_time,
+            #         "throughput_batches": batches_in_update / update_time,
+            #         "gradnorm": grad_norm,
+            #         "max_memory": max_memory,
+            #     },
+            #     step=global_step,
+            # )
+            if tb_writer is not None:
+                tb_writer.add_scalar("loss", loss.item(), global_step)
+                tb_writer.add_scalar("lr", lr, global_step)
+                tb_writer.add_scalar("update_step", update_step, global_step)
+                tb_writer.add_scalar("tokens_seen", tokens_seen, global_step)
+                tb_writer.add_scalar("throughput_tokens", tokens_in_update / update_time, global_step)
+                tb_writer.add_scalar("throughput_examples", args.total_batch_size / update_time, global_step)
+                tb_writer.add_scalar("throughput_batches", batches_in_update / update_time, global_step)
+                tb_writer.add_scalar("gradnorm", grad_norm, global_step)
+                tb_writer.add_scalar("max_memory", max_memory, global_step)
 
         update_time = time.time()
 
@@ -662,7 +694,7 @@ def main(args):
         )
         os.makedirs(args.save_dir, exist_ok=True)
 
-        model.module.save_pretrained(current_model_directory)
+        get_model_for_saving().save_pretrained(current_model_directory)
 
         optimizer_checkpoint = {
             "optimizer": optimizer.state_dict(),
@@ -670,7 +702,7 @@ def main(args):
             "update_step": update_step,
             "global_step": global_step,
             "config": run_config,
-            "wandb": wandb.run.dir,
+            #"wandb": wandb.run.dir,
             "dtype": args.dtype,
         }
         torch.save(optimizer_checkpoint, f"{current_model_directory}/optimizer.pt")
@@ -706,17 +738,22 @@ def main(args):
     )
 
     if global_rank == 0:
-        wandb.log(
-            {
-                "final_eval_loss": total_loss,
-                "final_eval_perplexity": np.exp(total_loss),
-                "final_eval_tokens": evaluated_on_tokens,
-            },
-            step=global_step,
-        )
+        # wandb.log(
+        #     {
+        #         "final_eval_loss": total_loss,
+        #         "final_eval_perplexity": np.exp(total_loss),
+        #         "final_eval_tokens": evaluated_on_tokens,
+        #     },
+        #     step=global_step,
+        # )
         logger.info(
             f"Eval loss and perplexity at step {update_step}: {total_loss}, {np.exp(total_loss)}"
         )
+        if tb_writer is not None:
+            tb_writer.add_scalar("final_eval_loss", total_loss, global_step)
+            tb_writer.add_scalar("final_eval_perplexity", np.exp(total_loss), global_step)
+            tb_writer.add_scalar("final_eval_tokens", evaluated_on_tokens, global_step)
+            tb_writer.close()
 
     logger.info("Script finished successfully")
     print(f"Rank {global_rank} finished successfully")
