@@ -293,12 +293,12 @@ def main():
             print(f"Removing {shard_path}")
             os.system(f"rm -rf '{shard_path}'")
 
-    # # Remove progress files
-    # for split in ["train", "validation"]:
-    #     prog_path = os.path.join(final_path, f"progress_{split}.json")
-    #     if os.path.exists(prog_path):
-    #         print(f"Removing {prog_path}")
-    #         os.remove(prog_path)
+    # Remove progress files
+    for split in ["train", "validation"]:
+        prog_path = os.path.join(final_path, f"progress_{split}.json")
+        if os.path.exists(prog_path):
+            print(f"Removing {prog_path}")
+            os.remove(prog_path)
 
 
     DatasetDict({"train": train_ds, "validation": val_ds}).save_to_disk(args.output_dir)
