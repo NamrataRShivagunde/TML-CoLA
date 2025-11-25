@@ -76,9 +76,22 @@ def process_stream(
     # Load and shuffle stream
     #stream = load_dataset("allenai/c4", "en", split=split, streaming=True)
 
+     # Load from local files - FIXED
+    if split == "train":
+        data_files = [
+            os.path.join(input_dir, "en", "c4-train.00001-of-01024.json.gz"),
+            os.path.join(input_dir, "en", "c4-train.00002-of-01024.json.gz"),
+        ]
+    else:  # validation
+        data_files = [
+            os.path.join(input_dir, "en", "c4-validation.00000-of-00008.json.gz"),
+        ]
+    
+    print(f"Loading from files: {data_files}")
+    
     stream = load_dataset(
         "json",
-        data_files=os.path.join(input_dir, "en", f"c4-{split}.*.json.gz"),
+        data_files=data_files,
         split="train",
         streaming=True
     )
