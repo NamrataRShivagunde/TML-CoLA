@@ -92,18 +92,7 @@ def process_stream(
     #     data_files = sorted(glob.glob(os.path.join(input_dir, "en", "c4-train.*.json.gz")))
     # else:  # validation
     #     data_files = sorted(glob.glob(os.path.join(input_dir, "en", "c4-validation.*.json.gz")))
-
-    print(f"Loading from {len(data_files)} files")
-    print(f"First file: {data_files[0] if data_files else 'None'}")
-    print(f"Last file: {data_files[-1] if data_files else 'None'}")
-
-    stream = load_dataset(
-        "json",
-        data_files=data_files,
-        split=split,
-        streaming=True
-    )
-        
+ 
     print(f"Loading from files: {data_files}")
     
     stream = load_dataset(
