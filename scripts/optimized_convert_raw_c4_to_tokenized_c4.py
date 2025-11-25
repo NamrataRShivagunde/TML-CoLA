@@ -2,6 +2,7 @@
 import os
 import argparse
 import json
+import glob
 import numpy as np
 from datasets import load_dataset, Dataset, DatasetDict, Features, Sequence, Value
 from transformers import AutoTokenizer
@@ -73,10 +74,9 @@ def process_stream(
     print(f"Next shard to write: {next_shard}")
     print("=====================================\n")
 
-    # Load and shuffle stream
-    #stream = load_dataset("allenai/c4", "en", split=split, streaming=True)
 
-     # Load from local files - FIXED
+    # Load from local files - FIXED
+    #for debugging
     if split == "train":
         data_files = [
             os.path.join(input_dir, "en", "c4-train.00001-of-01024.json.gz"),
@@ -86,7 +86,24 @@ def process_stream(
         data_files = [
             os.path.join(input_dir, "en", "c4-validation.00000-of-00008.json.gz"),
         ]
-    
+
+    # # Load from local files - FIXED to read all files
+    # if split == "train":
+    #     data_files = sorted(glob.glob(os.path.join(input_dir, "en", "c4-train.*.json.gz")))
+    # else:  # validation
+    #     data_files = sorted(glob.glob(os.path.join(input_dir, "en", "c4-validation.*.json.gz")))
+
+    print(f"Loading from {len(data_files)} files")
+    print(f"First file: {data_files[0] if data_files else 'None'}")
+    print(f"Last file: {data_files[-1] if data_files else 'None'}")
+
+    stream = load_dataset(
+        "json",
+        data_files=data_files,
+        split=split,
+        streaming=True
+    )
+        
     print(f"Loading from files: {data_files}")
     
     stream = load_dataset(
@@ -99,8 +116,14 @@ def process_stream(
 
     batch_texts = []
     shard_examples = []
+    examples_skipped = 0
 
     for ex in stream:
+        # Skip already processed examples
+        if examples_skipped < total_examples:
+            examples_skipped += 1
+            continue
+
         if total_tokens >= target_tokens:
             break
 
