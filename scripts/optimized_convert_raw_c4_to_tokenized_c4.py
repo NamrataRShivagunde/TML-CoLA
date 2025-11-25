@@ -302,7 +302,7 @@ def main():
         "val_examples": val_state["total_examples"],
     }
 
-    with open(os.path.join(args.output_dir, "dataset_metadata_info.json"), "w") as f:
+    with open(os.path.join(args.output_dir, "dataset_info.json"), "w") as f:
         json.dump(meta, f, indent=2)
 
     print("\nDONE — Dataset saved with resume support.")
