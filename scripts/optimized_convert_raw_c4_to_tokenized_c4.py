@@ -77,21 +77,21 @@ def process_stream(
 
     # Load from local files - FIXED
     #for debugging
-    if split == "train":
-        data_files = [
-            os.path.join(input_dir, "en", "c4-train.00001-of-01024.json.gz"),
-            os.path.join(input_dir, "en", "c4-train.00002-of-01024.json.gz"),
-        ]
-    else:  # validation
-        data_files = [
-            os.path.join(input_dir, "en", "c4-validation.00000-of-00008.json.gz"),
-        ]
+    # if split == "train":
+    #     data_files = [
+    #         os.path.join(input_dir, "en", "c4-train.00001-of-01024.json.gz"),
+    #         os.path.join(input_dir, "en", "c4-train.00002-of-01024.json.gz"),
+    #     ]
+    # else:  # validation
+    #     data_files = [
+    #         os.path.join(input_dir, "en", "c4-validation.00000-of-00008.json.gz"),
+    #     ]
 
     # # Load from local files - FIXED to read all files
-    # if split == "train":
-    #     data_files = sorted(glob.glob(os.path.join(input_dir, "en", "c4-train.*.json.gz")))
-    # else:  # validation
-    #     data_files = sorted(glob.glob(os.path.join(input_dir, "en", "c4-validation.*.json.gz")))
+    if split == "train":
+        data_files = sorted(glob.glob(os.path.join(input_dir, "en", "c4-train.*.json.gz")))
+    else:  # validation
+        data_files = sorted(glob.glob(os.path.join(input_dir, "en", "c4-validation.*.json.gz")))
  
     print(f"Loading from files: {data_files}")
     
