@@ -1,0 +1,20 @@
+#!/bin/bash
+
+torchrun --standalone --nproc-per-node=1 CoLA/main.py \
+    --model_type cola \
+    --model_config CoLA/cola_configs/cola_350m_aspectratio64.json \
+    --lr 0.003 \
+    --optimizer adamw \
+    --batch_size 64 \
+    --total_batch_size 512 \
+    --num_training_steps 60000 \
+    --warmup_steps 6000 \
+    --weight_decay 0.01 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --grad_clipping 0.5 \
+    --run_name cola-350m \
+    --scheduler cosine \
+    --offline_mode \
+    --offline_data_path datasets/c4/tokenized \
+    --tensorboard
