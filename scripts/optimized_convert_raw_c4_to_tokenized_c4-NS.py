@@ -173,6 +173,10 @@ def process_stream(
                     "finished": False,
                 })
 
+                if next_shard == 8:
+                    print("Stopping early for testing after 8 shards.")
+                    break
+
     # ---- Save final partial shard ----
     if shard_examples:
         shard_path = os.path.join(out_dir, f"{split}_shard_{next_shard}")
