@@ -49,7 +49,7 @@ def main():
         "train_examples": len(train_ds),
     }
 
-    with open(os.path.join(args.output_dir, "assembly_info.json"), "w") as f:
+    with open(os.path.join(args.output_dir, "train_set_assembly_info.json"), "w") as f:
         json.dump(meta, f, indent=2)
 
     print("\n✅ DONE — Train Dataset assembled and saved.")

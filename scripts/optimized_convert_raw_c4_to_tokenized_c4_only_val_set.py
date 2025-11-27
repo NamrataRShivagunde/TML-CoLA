@@ -268,7 +268,7 @@ def main():
 
     # Remove progress files
     for split in ["validation"]:
-        prog_path = os.path.join(final_path, f"progress_{split}.json")
+        prog_path = os.path.join(final_path, f"val_progress_{split}.json")
         if os.path.exists(prog_path):
             print(f"Removing {prog_path}")
             os.remove(prog_path)
@@ -284,7 +284,7 @@ def main():
         "val_examples": val_state["total_examples"],
     }
 
-    with open(os.path.join(args.output_dir, "dataset_info.json"), "w") as f:
+    with open(os.path.join(args.output_dir, "val_set_dataset_info.json"), "w") as f:
         json.dump(meta, f, indent=2)
 
     print("\nDONE — Val Dataset saved")
