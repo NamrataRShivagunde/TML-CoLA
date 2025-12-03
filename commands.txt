@@ -1,0 +1,196 @@
+## Baseline - 60M
+
+torchrun --standalone --nproc_per_node 8 CoLA/main.py \
+    --model_config CoLA/baseline_configs/llama_60m.json \
+    --model_type llama \
+    --lr 0.001 \
+    --batch_size 64 \
+    --total_batch_size 512 \
+    --num_training_steps 10000 \
+    --warmup_steps 1000 \
+    --weight_decay 0 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --optimizer adamw \
+    --run_name baseline-60m \
+    --scheduler cosine \
+    --offline_mode \
+    --save_dir /checkpoint-fsx/arrumshi \
+    --save_every 10000 \
+    --tensorboard \
+    --offline_data_path /scratch/scratch/arrumshi/datasets/c4/tokenized-35B \
+    2>&1 | tee "${LOG_DIR}/train.${WORKER_ID}.log"
+
+## Baseline - 130M
+
+torchrun --standalone --nproc_per_node 8 main.py \
+    --model_config baseline_configs/llama_130m.json \
+    --model_type llama \
+    --lr 0.001 \
+    --batch_size 64 \
+    --total_batch_size 512 \
+    --num_training_steps 20000 \
+    --warmup_steps 2000 \
+    --weight_decay 0.0 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --optimizer adamw \
+    --run_name baseline-130m \
+    --scheduler cosine \
+    --offline_mode \
+    --save_dir /checkpoint-fsx/arrumshi \
+    --save_every 5000 \
+    --tensorboard \
+    --offline_data_path /scratch/scratch/arrumshi/datasets/c4/tokenized-35B \
+    2>&1 | tee "${LOG_DIR}/train.${WORKER_ID}.log"
+
+
+## Baseline - 350M
+
+torchrun --standalone --nproc_per_node 8 CoLA/main.py \
+    --model_config baseline_configs/llama_350m_aspectratio64.json \
+    --model_type llama \
+    --lr 0.001 \
+    --batch_size 64 \
+    --total_batch_size 512 \
+    --num_training_steps 60000 \
+    --warmup_steps 6000 \
+    --weight_decay 0 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --optimizer adamw \
+    --run_name baseline-350m \
+    --scheduler cosine \
+    --offline_mode \
+    --save_dir /checkpoint-fsx/arrumshi \
+    --save_every 5000 \
+    --tensorboard \
+    --offline_data_path /scratch/scratch/arrumshi/datasets/c4/tokenized-35B \
+    2>&1 | tee "${LOG_DIR}/train.${WORKER_ID}.log"
+
+
+
+## Baseline - 1B
+
+torchrun --standalone --nproc_per_node 8 CoLA/main.py \
+    --model_config baseline_configs/llama_1b_aspectratio64.json \
+    --model_type llama \
+    --lr 0.001 \
+    --batch_size 64 \
+    --total_batch_size 512 \
+    --num_training_steps 100000 \
+    --warmup_steps 10000 \
+    --weight_decay 0.0 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --optimizer adamw \
+    --run_name baseline-1b \
+    --scheduler cosine \
+    --offline_mode \
+    --save_dir /checkpoint-fsx/arrumshi \
+    --save_every 5000 \
+    --tensorboard \
+    --offline_data_path /scratch/scratch/arrumshi/datasets/c4/tokenized-35B \
+    2>&1 | tee "${LOG_DIR}/train.${WORKER_ID}.log"
+
+
+
+    --------------------------
+
+     CoLA
+
+## Cola - 60M
+
+torchrun --standalone --nproc_per_node 8 CoLA/main.py \
+    --model_type cola \
+    --model_config CoLA/cola_configs/cola_60m.json \
+    --lr 0.006 \
+    --optimizer adamw \
+    --batch_size 64 \
+    --total_batch_size 512 \
+    --num_training_steps 10000 \
+    --warmup_steps 2000 \
+    --weight_decay 0.01 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --grad_clipping 0.5 \
+    --run_name cola-60m \
+    --scheduler cosine \
+    --offline_mode \
+    --save_dir /checkpoint-fsx/arrumshi \
+    --save_every 10000 \
+    --tensorboard \
+    --offline_data_path /scratch/scratch/arrumshi/datasets/c4/tokenized-35B \
+    2>&1 | tee "${LOG_DIR}/train.${WORKER_ID}.log"
+
+## Cola - 130M
+
+torchrun --standalone --nproc_per_node 8 CoLA/main.py \
+    --model_type cola \
+    --model_config CoLA/cola_configs/cola_60m.json \
+    --lr 0.003 \
+    --optimizer adamw \
+    --batch_size 64 \
+    --total_batch_size 512 \
+    --num_training_steps 20000 \
+    --warmup_steps 2000 \
+    --weight_decay 0.01 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --grad_clipping 0.5 \
+    --run_name cola-130m \
+    --scheduler cosine \
+    --offline_mode \
+    --save_dir /checkpoint-fsx/arrumshi \
+    --save_every 5000 \
+    --tensorboard \
+    --offline_data_path /scratch/scratch/arrumshi/datasets/c4/tokenized-35B \
+    2>&1 | tee "${LOG_DIR}/train.${WORKER_ID}.log"
+
+## Cola - 350M
+
+torchrun --standalone --nproc_per_node 8 CoLA/main.py \
+    --model_type cola \
+    --model_config CoLA/cola_configs/cola_350m_aspectratio64.json \
+    --lr 0.003 \
+    --optimizer adamw \
+    --batch_size 64 \
+    --total_batch_size 512 \
+    --num_training_steps 60000 \
+    --warmup_steps 6000 \
+    --weight_decay 0.01 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --grad_clipping 0.5 \
+    --run_name cola-350m \
+    --scheduler cosine \
+    --offline_mode \
+    --save_dir /checkpoint-fsx/arrumshi \
+    --save_every 5000 \
+    --tensorboard \
+    --offline_data_path /scratch/scratch/arrumshi/datasets/c4/tokenized-35B \
+    2>&1 | tee "${LOG_DIR}/train.${WORKER_ID}.log"
+
+## Cola - 1B
+
+torchrun --standalone --nproc_per_node 8 CoLA/main.py \
+    --model_config  CoLA/cola_configs/cola_1b_aspectratio64.json \
+    --model_type cola \
+    --lr 0.002 \
+    --batch_size 64 \
+    --total_batch_size 512 \
+    --num_training_steps 100000 \
+    --warmup_steps 10000 \
+    --weight_decay 0.01 \
+    --grad_clipping 0.5 \
+    --dtype bfloat16 \
+    --eval_every 1000 \
+    --optimizer adamw \
+    --run_name cola-1b \
+    --scheduler cosine \
+    --offline_mode \
+    --save_dir /checkpoint-fsx/arrumshi \
+    --save_every 5000 \
+    --tensorboard \
+    --offline_data_path /scratch/scratch/arrumshi/datasets/c4/tokenized-35B \
+    2>&1 | tee "${LOG_DIR}/train.${WORKER_ID}.log"
