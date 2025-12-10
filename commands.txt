@@ -50,7 +50,7 @@ torchrun --standalone --nproc_per_node 8 main.py \
 torchrun --standalone --nproc_per_node 8 CoLA/main.py \
     --model_config baseline_configs/llama_350m_aspectratio64.json \
     --model_type llama \
-    --lr 0.001 \
+    --lr 0.0005 \
     --batch_size 64 \
     --total_batch_size 512 \
     --num_training_steps 60000 \
@@ -75,7 +75,7 @@ torchrun --standalone --nproc_per_node 8 CoLA/main.py \
 torchrun --standalone --nproc_per_node 8 CoLA/main.py \
     --model_config baseline_configs/llama_1b_aspectratio64.json \
     --model_type llama \
-    --lr 0.001 \
+    --lr 0.0005 \
     --batch_size 64 \
     --total_batch_size 512 \
     --num_training_steps 100000 \
