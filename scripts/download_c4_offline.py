@@ -193,24 +193,19 @@ def main():
     with open(os.path.join(args.output_dir, "dataset_info.json"), "w") as f:
         json.dump(meta, f, indent=2)
 
-    import time
-    time.sleep(5)
 
-    print(f"Saved tokenized dataset to {args.output_dir}")
-    import subprocess
-    # Optional cleanup: remove shard folders now that final dataset is saved
-    for name in os.listdir(args.output_dir):
-        if name.startswith("train_shard_") or name.startswith("validation_shard_"):
-            shard_path = os.path.join(args.output_dir, name)
-            print(f"Force removing {shard_path}")
-            # change permission for shard_path to do all operations
-            chmod_command = ["chmod", "-R", "777", shard_path]
-            subprocess.run(chmod_command, check=True)
-            os.system(f"rm -rf '{shard_path}'")
-    
-            
+    # print(f"Saved tokenized dataset to {args.output_dir}")
+    # im    # Optional cleanup: remove shard folders now that final dataset is saved
+    # for name in os.listdir(args.output_dir):
+    #     if name.startswith("train_shard_") or name.startswith("validation_shard_"):
+    #         shard_path = os.path.join(args.output_dir, name)
+    #         print(f"Force removing {shard_path}")
+    #         # change permission for shard_path to do all operations
+    #         chmod_command = ["chmod", "-R", "777", shard_path]
+    #         subprocess.run(chmod_command, check=True)
+    #         os.system(f"rm -rf '{shard_path}'")       
 
-    print("Done")
+    # print("Done")
 
 
 if __name__ == "__main__":
