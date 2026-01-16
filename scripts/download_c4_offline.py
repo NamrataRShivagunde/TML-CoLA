@@ -26,6 +26,7 @@ from tqdm import tqdm
 from datasets import load_dataset, Dataset, DatasetDict, Features, Sequence, Value, concatenate_datasets
 from transformers import AutoTokenizer
 import numpy as np
+import shutil
 
 
 def save_shard(examples, shard_path):
@@ -198,7 +199,9 @@ def main():
         if name.startswith("train_shard_") or name.startswith("validation_shard_"):
             shard_path = os.path.join(args.output_dir, name)
             print(f"Removing {shard_path}")
-            os.system(f"rm -rf '{shard_path}'")
+            # os.system(f"rm -rf '{shard_path}'")
+            shutil.rmtree(shard_path)
+
     print("Done")
 
 
