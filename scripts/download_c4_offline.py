@@ -205,9 +205,9 @@ def main():
             # # os.system(f"rm -rf '{shard_path}'")
             # os.rmdir(shard_path)
             import subprocess
-
-            # Instead of os.rmdir or shutil
-            subprocess.run(['rm', '-rf', shard_path])
+            # change permission of the shard_path to allow deletion
+            os.chmod(shard_path, 0o700)
+            os.system(f"rm -rf '{shard_path}'")
             
 
     print("Done")
