@@ -193,6 +193,9 @@ def main():
     with open(os.path.join(args.output_dir, "dataset_info.json"), "w") as f:
         json.dump(meta, f, indent=2)
 
+    import time
+    time.sleep(5)
+
     print(f"Saved tokenized dataset to {args.output_dir}")
     # Optional cleanup: remove shard folders now that final dataset is saved
     for name in os.listdir(args.output_dir):
@@ -200,7 +203,8 @@ def main():
             shard_path = os.path.join(args.output_dir, name)
             print(f"Removing {shard_path}")
             # os.system(f"rm -rf '{shard_path}'")
-            shutil.rmtree(shard_path)
+            os.rmdir(shard_path)
+            
 
     print("Done")
 
