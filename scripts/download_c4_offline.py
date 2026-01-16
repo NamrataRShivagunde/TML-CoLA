@@ -202,8 +202,12 @@ def main():
         if name.startswith("train_shard_") or name.startswith("validation_shard_"):
             shard_path = os.path.join(args.output_dir, name)
             print(f"Removing {shard_path}")
-            # os.system(f"rm -rf '{shard_path}'")
-            os.rmdir(shard_path)
+            # # os.system(f"rm -rf '{shard_path}'")
+            # os.rmdir(shard_path)
+            import subprocess
+
+            # Instead of os.rmdir or shutil
+            subprocess.run(['rm', '-rf', shard_path])
             
 
     print("Done")
