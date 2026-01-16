@@ -206,7 +206,7 @@ def main():
             # change permission for shard_path to do all operations
             chmod_command = ["chmod", "-R", "777", shard_path]
             subprocess.run(chmod_command, check=True)
-            subprocess.run(["rm", "-rf", shard_path], check=True)
+            os.system(f"rm -rf '{shard_path}'")
     
             
 
