@@ -203,12 +203,11 @@ def main():
         if name.startswith("train_shard_") or name.startswith("validation_shard_"):
             shard_path = os.path.join(args.output_dir, name)
             print(f"Force removing {shard_path}")
-            
-            # Use subprocess to handle the deletion at the OS level
-            try:
-                subprocess.run(["rm", "-rf", shard_path], check=True)
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to remove {shard_path}: {e}")
+            # change permission for shard_path to do all operations
+            chmod_command = ["chmod", "-R", "777", shard_path]
+            subprocess.run(chmod_command, check=True)
+            subprocess.run(["rm", "-rf", shard_path], check=True)
+    
             
 
     print("Done")
