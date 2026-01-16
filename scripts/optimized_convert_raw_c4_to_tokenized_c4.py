@@ -101,6 +101,8 @@ def process_stream(
         split="train",
         streaming=True
     )
+    # load and shuffle stream
+    # 
     stream = stream.shuffle(seed=42)
 
     batch_texts = []
@@ -143,8 +145,8 @@ def process_stream(
         non_pad_counts = np.count_nonzero(input_ids != pad_id, axis=1)
 
         for ids, att, n_pad in zip(input_ids, masks, non_pad_counts):
-            if total_tokens >= target_tokens:
-                break
+            # if total_tokens >= target_tokens:
+            #     break
 
             shard_examples.append(
                 {
@@ -290,7 +292,7 @@ def main():
             os.remove(prog_path)
 
 
-    DatasetDict({"train": train_ds, "validation": val_ds}).save_to_disk(args.output_dir)
+    # DatasetDict({"train": train_ds, "validation": val_ds}).save_to_disk(args.output_dir)
 
     # Metadata
     meta = {
