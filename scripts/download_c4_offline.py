@@ -197,6 +197,7 @@ def main():
     time.sleep(5)
 
     print(f"Saved tokenized dataset to {args.output_dir}")
+    import subprocess
     # Optional cleanup: remove shard folders now that final dataset is saved
     for name in os.listdir(args.output_dir):
         if name.startswith("train_shard_") or name.startswith("validation_shard_"):
