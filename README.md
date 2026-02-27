@@ -13,8 +13,8 @@ For **original CoLA codebase**, please refer to `https://github.com/alvin-zyl/Co
 
 Note: 
  - `CoLA` original code https://github.com/alvin-zyl/CoLA  repo supports only bf16 precision training.
- - `TML-CoLA` code repo https://github.com/NamrataRShivagunde/TML-CoLA supports only bf16 precision training.
- - [THIS REPO] `low-rank-training` code repo https://github.com/NamrataRShivagunde/low-rank-training  - implemented Cola in Nemo framework and supports mixed precision training. 
+ - [THIS REPO]  `TML-CoLA` code repo https://github.com/NamrataRShivagunde/TML-CoLA supports only bf16 precision training.
+ - `low-rank-training` code repo https://github.com/NamrataRShivagunde/low-rank-training  - implemented Cola in Nemo framework and supports mixed precision training. 
 
 # TML-CoLA
 cd TML-CoLA
