@@ -11,6 +11,11 @@ For **original CoLA codebase**, please refer to `https://github.com/alvin-zyl/Co
  - has config files for model maintaining same aspect ratio (aspect ratio=64) Hidden size/ #heads ratio and Hidden size/ # layers for all model sizes, the config files changed from original config are named with `_aspectratio` tag e.g. `CoLA/baseline_configs/llama_350m_aspectratio64.json`
 
 
+Note: 
+ - `CoLA` original code https://github.com/alvin-zyl/CoLA  repo supports only bf16 precision training.
+ - `TML-CoLA` code repo https://github.com/NamrataRShivagunde/TML-CoLA supports only bf16 precision training.
+ - [THIS REPO] `low-rank-training` code repo https://github.com/NamrataRShivagunde/low-rank-training  - implemented Cola in Nemo framework and supports mixed precision training. 
+
 # TML-CoLA
 cd TML-CoLA
 
