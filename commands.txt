@@ -200,7 +200,7 @@ torchrun --standalone --nproc_per_node 8 CoLA/main.py \
 
 ------ debug ---------
 
-torchrun --standalone --nproc_per_node 2 CoLA/main.py \
+torchrun --nproc_per_node 2 CoLA/main.py \
     --model_config CoLA/baseline_configs/llama_350m_aspectratio64.json \
     --model_type llama \
     --lr 0.0005 \

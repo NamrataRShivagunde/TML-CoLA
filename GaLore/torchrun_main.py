@@ -83,7 +83,28 @@ def parse_args(args):
 @torch.no_grad()
 def evaluate_model(model, preprocess_batched, pad_idx, global_rank, world_size, device, batch_size):
     _time = time.time()
-    val_data = datasets.load_dataset("c4", "en", split="validation", streaming=True) #DGX
+    val_data = None
+    c4_load_attempts = [
+        ("allenai/c4", "en"),
+        ("c4", "en"),
+    ]
+    last_c4_error = None
+    for dataset_name, dataset_config in c4_load_attempts:
+        try:
+            val_data = datasets.load_dataset(dataset_name, dataset_config, split="validation", streaming=True)
+            logger.info(f"Loaded validation split from {dataset_name}/{dataset_config}")
+            break
+        except Exception as e:
+            last_c4_error = e
+            logger.warning(f"Failed loading {dataset_name}/{dataset_config}: {e}")
+
+    if val_data is None:
+        raise RuntimeError(
+            "Unable to load C4 validation split for evaluation. "
+            "Tried 'allenai/c4' and 'c4'. "
+            f"Last error: {last_c4_error}"
+        )
+
     val_data = val_data.shuffle(seed=42)
     logger.info(f"Loaded validation dataset in {time.time() - _time:.2f} seconds")
 
