@@ -5,23 +5,29 @@ from torch.utils.data import IterableDataset, get_worker_info
 
 
 class PreprocessedIterableDataset(IterableDataset):
-    def __init__(self, data, tokenizer, batch_size, max_length):
+    def __init__(self, data, tokenizer, batch_size, max_length, skip_examples=0):
         super().__init__()
         self.data = data
         self.tokenizer = tokenizer
         self.batch_size = batch_size
         self.max_length = max_length
+        self.skip_examples = skip_examples
 
     def __iter__(self):
+        if self.skip_examples > 0:
+            base_iter_data = itertools.islice(self.data, self.skip_examples, None)
+        else:
+            base_iter_data = iter(self.data)
+
         worker_info = get_worker_info()
         if worker_info is None:
             # If no worker_info is provided, we are not using DataLoader workers, so yield all data
-            iter_data = iter(self.data)
+            iter_data = base_iter_data
         else:
             # If using DataLoader workers, yield a subset of the data for this worker
             worker_id = worker_info.id
             num_workers = worker_info.num_workers
-            iter_data = itertools.islice(self.data, worker_id, None, num_workers)
+            iter_data = itertools.islice(base_iter_data, worker_id, None, num_workers)
 
         batch = []
         for example in iter_data:

@@ -206,6 +206,13 @@ def main(args):
     logger.info("Process group initialized")
     device = f"cuda:{local_rank}"
 
+    resume_state = None
+    if args.continue_from is not None:
+        training_state_path = os.path.join(args.continue_from, "training_state.json")
+        if os.path.exists(training_state_path):
+            with open(training_state_path) as f:
+                resume_state = json.load(f)
+
     if args.total_batch_size is not None:
         if args.gradient_accumulation is None:
             assert (
@@ -313,8 +320,23 @@ def main(args):
         # it doesn't matter which tokenizer we use, because we train from scratch
         # T5 tokenizer was trained on C4 and we are also training on C4, so it's a good choice
 
+        resume_skip_examples = 0
+        if resume_state is not None:
+            resume_skip_examples = (
+                resume_state["update_step"]
+                * args.gradient_accumulation
+                * args.batch_size
+            )
+            logger.info(
+                f"Fast-forwarding streaming dataset by {resume_skip_examples} examples for resume"
+            )
+
         dataset = PreprocessedIterableDataset(
-            data, tokenizer, batch_size=args.batch_size, max_length=args.max_length
+            data,
+            tokenizer,
+            batch_size=args.batch_size,
+            max_length=args.max_length,
+            skip_examples=resume_skip_examples,
         )
         train_dataloader = torch.utils.data.DataLoader(
             dataset, batch_size=None, num_workers=args.workers
@@ -411,8 +433,7 @@ def main(args):
             logger.info(
                 f"Loading training state like global_step, update_step, and tokens_seen from {args.continue_from}"
             )
-            with open(os.path.join(args.continue_from, "training_state.json")) as f:
-                _old_state = json.load(f)
+            _old_state = resume_state
             global_step = _old_state["global_step"]
             update_step = _old_state["update_step"]
             tokens_seen = _old_state["tokens_seen"]
@@ -495,7 +516,7 @@ def main(args):
     torch.cuda.reset_peak_memory_stats()
     # pdb.set_trace()
     for batch_idx, batch in enumerate(train_dataloader):
-        if batch_idx // args.gradient_accumulation < update_step:
+        if args.offline_mode and batch_idx // args.gradient_accumulation < update_step:
             # Skipping data that are already seen in previous steps
             continue
 
