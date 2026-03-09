@@ -55,6 +55,13 @@ def parse_args(args):
     parser.add_argument("--model_config", type=str, required=True)
     parser.add_argument("--offline_mode", default=False, action="store_true")
     parser.add_argument("--continue_from", type=str, default=None)
+    parser.add_argument(
+        "--resume_exact_data_position",
+        default=False,
+        action="store_true",
+        help="When resuming with streaming data, skip previously consumed examples to match exact data position. "
+        "This can be slow for large checkpoints.",
+    )
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--gradient_accumulation", type=int, default=None)
     parser.add_argument("--total_batch_size", type=int, default=None)
@@ -321,7 +328,7 @@ def main(args):
         # T5 tokenizer was trained on C4 and we are also training on C4, so it's a good choice
 
         resume_skip_examples = 0
-        if resume_state is not None:
+        if resume_state is not None and args.resume_exact_data_position:
             resume_skip_examples = (
                 resume_state["update_step"]
                 * args.gradient_accumulation
@@ -329,6 +336,12 @@ def main(args):
             )
             logger.info(
                 f"Fast-forwarding streaming dataset by {resume_skip_examples} examples for resume"
+            )
+        elif resume_state is not None:
+            logger.warning(
+                "Resuming without exact streaming data fast-forward. "
+                "Optimizer/model state is restored, but data position restarts from current stream order. "
+                "Use --resume_exact_data_position to enforce exact replay position (slower startup)."
             )
 
         dataset = PreprocessedIterableDataset(
@@ -338,8 +351,17 @@ def main(args):
             max_length=args.max_length,
             skip_examples=resume_skip_examples,
         )
+
+        streaming_workers = args.workers
+        if args.continue_from is not None and streaming_workers > 0:
+            logger.warning(
+                "Resuming in streaming mode with num_workers>0 can stall because iterable state "
+                "is not reliably restorable across worker processes. Falling back to num_workers=0 for resume."
+            )
+            streaming_workers = 0
+
         train_dataloader = torch.utils.data.DataLoader(
-            dataset, batch_size=None, num_workers=args.workers
+            dataset, batch_size=None, num_workers=streaming_workers
         )
         eval_dataloader = None
 

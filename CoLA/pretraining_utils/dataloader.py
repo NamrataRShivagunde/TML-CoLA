@@ -14,20 +14,25 @@ class PreprocessedIterableDataset(IterableDataset):
         self.skip_examples = skip_examples
 
     def __iter__(self):
-        if self.skip_examples > 0:
-            base_iter_data = itertools.islice(self.data, self.skip_examples, None)
-        else:
-            base_iter_data = iter(self.data)
-
         worker_info = get_worker_info()
         if worker_info is None:
             # If no worker_info is provided, we are not using DataLoader workers, so yield all data
-            iter_data = base_iter_data
+            if self.skip_examples > 0:
+                iter_data = itertools.islice(self.data, self.skip_examples, None)
+            else:
+                iter_data = iter(self.data)
         else:
             # If using DataLoader workers, yield a subset of the data for this worker
             worker_id = worker_info.id
             num_workers = worker_info.num_workers
-            iter_data = itertools.islice(base_iter_data, worker_id, None, num_workers)
+            iter_data = itertools.islice(self.data, worker_id, None, num_workers)
+
+            if self.skip_examples > 0:
+                worker_skip = self.skip_examples // num_workers
+                if worker_id < (self.skip_examples % num_workers):
+                    worker_skip += 1
+                if worker_skip > 0:
+                    iter_data = itertools.islice(iter_data, worker_skip, None)
 
         batch = []
         for example in iter_data:
