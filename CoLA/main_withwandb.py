@@ -9,6 +9,10 @@ import torch
 import torch.nn as nn
 import torch.utils.data
 import torch.distributed as dist
+try:
+    from torchdata.stateful_dataloader import StatefulDataLoader
+except ImportError:
+    StatefulDataLoader = None
 
 import transformers
 from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM
@@ -55,6 +59,12 @@ def parse_args(args):
     parser.add_argument("--model_config", type=str, required=True)
     parser.add_argument("--offline_mode", default=False, action="store_true")
     parser.add_argument("--continue_from", type=str, default=None)
+    parser.add_argument(
+        "--use_stateful_dataloader",
+        default=False,
+        action="store_true",
+        help="Use torchdata StatefulDataLoader for streaming datasets and save/load dataloader state on checkpoints.",
+    )
     parser.add_argument(
         "--resume_exact_data_position",
         default=False,
@@ -212,6 +222,7 @@ def main(args):
 
     logger.info("Process group initialized")
     device = f"cuda:{local_rank}"
+    use_stateful_streaming = False
 
     resume_state = None
     if args.continue_from is not None:
@@ -353,16 +364,37 @@ def main(args):
         )
 
         streaming_workers = args.workers
-        if args.continue_from is not None and streaming_workers > 0:
+        if args.use_stateful_dataloader:
+            if StatefulDataLoader is None:
+                logger.warning(
+                    "--use_stateful_dataloader is set but torchdata is not installed. "
+                    "Falling back to regular DataLoader."
+                )
+            else:
+                use_stateful_streaming = True
+
+        if (
+            args.continue_from is not None
+            and streaming_workers > 0
+            and not use_stateful_streaming
+        ):
             logger.warning(
                 "Resuming in streaming mode with num_workers>0 can stall because iterable state "
                 "is not reliably restorable across worker processes. Falling back to num_workers=0 for resume."
             )
             streaming_workers = 0
 
-        train_dataloader = torch.utils.data.DataLoader(
-            dataset, batch_size=None, num_workers=streaming_workers
-        )
+        if use_stateful_streaming:
+            train_dataloader = StatefulDataLoader(
+                dataset, batch_size=None, num_workers=streaming_workers
+            )
+            logger.info(
+                f"Using StatefulDataLoader for streaming data with num_workers={streaming_workers}"
+            )
+        else:
+            train_dataloader = torch.utils.data.DataLoader(
+                dataset, batch_size=None, num_workers=streaming_workers
+            )
         eval_dataloader = None
 
     if args.continue_from is not None:
@@ -467,6 +499,28 @@ def main(args):
             logger.info(
                 f"Will train for {args.num_training_steps - update_step} update steps"
             )
+
+        if use_stateful_streaming:
+            dataloader_state_path = os.path.join(
+                args.continue_from, f"dataloader_state_rank{global_rank}.pt"
+            )
+            if not os.path.exists(dataloader_state_path):
+                dataloader_state_path = os.path.join(
+                    args.continue_from, "dataloader_state.pt"
+                )
+
+            if os.path.exists(dataloader_state_path):
+                dataloader_state = torch.load(
+                    dataloader_state_path, map_location="cpu"
+                )
+                train_dataloader.load_state_dict(dataloader_state)
+                logger.info(
+                    f"Loaded dataloader state from {dataloader_state_path}"
+                )
+            else:
+                logger.warning(
+                    f"No dataloader state found at {dataloader_state_path}, resume will continue from current stream position"
+                )
 
     scheduler_start_step = update_step
 
@@ -634,6 +688,13 @@ def main(args):
             with open(f"{args.save_dir}/wandb.json", "w") as f:
                 json.dump(wandb_info, f, indent=4)
 
+            if use_stateful_streaming:
+                os.makedirs(current_model_directory, exist_ok=True)
+                torch.save(
+                    train_dataloader.state_dict(),
+                    f"{current_model_directory}/dataloader_state_rank{global_rank}.pt",
+                )
+
         # evaluation
         if update_step % args.eval_every == 0:
             logger.info(f"Performing evaluation at step {update_step}")
@@ -727,6 +788,13 @@ def main(args):
         }
         with open(f"{current_model_directory}/training_state.json", "w") as f:
             json.dump(training_state_checkpoint, f, indent=4)
+
+    if use_stateful_streaming:
+        os.makedirs(current_model_directory, exist_ok=True)
+        torch.save(
+            train_dataloader.state_dict(),
+            f"{current_model_directory}/dataloader_state_rank{global_rank}.pt",
+        )
 
     # Final evaluation
     logger.info("Running final evaluation")
